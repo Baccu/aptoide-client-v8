@@ -131,14 +131,24 @@ android {
   }
 
   variantFilter { variant ->
-    List<ProductFlavor> flavors = variant.getFlavors()
 
-    String applicationIdBase = flavors[0].applicationId
-    String applicationIdSuffix = flavors[1].applicationIdSuffix
-    boolean hasSuffix = applicationIdSuffix != null
+    String flavor = variant.flavors[0].name
+    String dimension = variant.flavors[1].name
+    String buildType = variant.buildType.name
 
-    if (applicationIdBase.contains('partner') && hasSuffix &&
-        (applicationIdSuffix.contains('dev') || applicationIdSuffix.contains('internal'))) {
+    if (flavor.contains('partner') && dimension.contains('fairy')) {
+      setIgnore(true)
+    }
+
+    if (flavor.contains('partner') && dimension.contains('dev')) {
+      setIgnore(true)
+    }
+
+    if (flavor.contains('partner') && dimension.contains('internal')) {
+      setIgnore(true)
+    }
+
+    if (flavor.contains('vanilla') && dimension.contains('fairy') && buildType.contains('debug')) {
       setIgnore(true)
     }
   }
