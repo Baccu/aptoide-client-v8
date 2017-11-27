@@ -22,7 +22,7 @@
         />
 
     <TextView
-        android:id="@+id/include_payment_product_name"
+        android:id="@+id/fragment_payment_product_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="12dp"
@@ -30,22 +30,20 @@
         android:layout_marginStart="96dp"
         android:layout_marginTop="8dp"
         tools:text="Cut the Rope"
-        style="@style/TextAppearance.Aptoide.Subhead"
         />
 
 
     <TextView
-        android:id="@+id/include_payment_product_description"
+        android:id="@+id/include_payment_product_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/include_payment_product_name"
+        android:layout_below="@+id/fragment_payment_product_name"
         android:layout_marginBottom="16dp"
         android:layout_marginLeft="96dp"
         android:layout_marginStart="96dp"
         android:ellipsize="end"
         android:lines="2"
         tools:text="Golden coins for you to conquer the world with Cut the Rope the best mobile application you'e ever seen"
-        style="@style/TextAppearance.Aptoide.Caption.Inverse"
         />
 
   </RelativeLayout>
@@ -90,7 +88,6 @@
           android:gravity="end"
           android:lines="1"
           tools:text="6,50 R$"
-          style="@style/TextAppearance.Aptoide.Title"
           />
 
     </RelativeLayout>
@@ -98,7 +95,6 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="0.5dp"
-        android:background="@color/fragment_payment_dark_gray"
         />
   </LinearLayout>
 </LinearLayout>

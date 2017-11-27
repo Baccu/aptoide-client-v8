@@ -8,74 +8,205 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/white"
     >
 
-  <FrameLayout
-      android:id="@+id/fragment_payment_overlay"
-      android:layout_width="match_parent"
-      android:layout_height="match_parent"
-      android:background="@color/overlay_black"
-      android:clickable="true"
-      android:orientation="horizontal"
-      />
-
-  <ScrollView
-      android:id="@+id/fragment_payment_scroll"
+  <android.support.design.widget.AppBarLayout
+      android:id="@+id/fragment_payment_app_bar"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:layout_centerInParent="true"
-      android:layout_margin="16dp"
-      android:background="@drawable/dialog_bg"
       >
 
-    <LinearLayout
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/fragment_payment_toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:clickable="true"
-        android:minHeight="200dp"
-        android:orientation="vertical"
-        android:padding="16dp"
-        >
-
-      <include layout="@layout/include_payment_product"/>
+        android:theme="?attr/toolbarTheme"
+        app:title="@string/fragment_payment_toolbar_title"
+        />
+  </android.support.design.widget.AppBarLayout>
 
 
-      <RadioGroup
-          android:id="@+id/fragment_payment_list"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:orientation="vertical"
-          tools:visibility="gone"
-          />
-
-      <TextView
-          android:id="@+id/fragment_payment_no_payments_text"
-          android:layout_width="match_parent"
-          android:layout_height="100dp"
-          android:layout_marginBottom="16dp"
-          android:layout_marginTop="16dp"
-          android:gravity="center"
-          android:text="@string/no_payments_available"
-          android:visibility="gone"
-          tools:visibility="visible"
-          />
-
-      <include layout="@layout/include_payment_buttons"/>
-    </LinearLayout>
-  </ScrollView>
+  <ImageView
+      android:id="@+id/include_payment_product_icon"
+      android:layout_width="80dp"
+      android:layout_height="80dp"
+      android:layout_below="@id/fragment_payment_app_bar"
+      android:layout_marginLeft="16dp"
+      android:layout_marginStart="16dp"
+      android:layout_marginTop="16dp"
+      tools:ignore="contentDescription"
+      tools:src="@drawable/icon_user"
+      />
 
   <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_below="@id/fragment_payment_app_bar"
+      android:layout_marginEnd="16dp"
+      android:layout_marginLeft="16dp"
+      android:layout_marginRight="16dp"
+      android:layout_marginStart="16dp"
+      android:layout_marginTop="16dp"
+      android:layout_toEndOf="@id/include_payment_product_icon"
+      android:layout_toRightOf="@id/include_payment_product_icon"
+      android:orientation="vertical"
+      >
+
+    <TextView
+        android:id="@+id/payment_fragment_merchant_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif"
+        android:lineSpacingExtra="8sp"
+        android:textColor="@color/black_87_alpha"
+        android:textSize="20sp"
+        android:textStyle="normal"
+        tools:text="Texas Poker"
+        />
+
+
+    <TextView
+        android:id="@+id/fragment_payment_product_name_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:fontFamily="sans-serif"
+        android:lineSpacingExtra="6sp"
+        android:text="@string/fragment_payment_product_name_label"
+        android:textColor="@color/grey"
+        android:textSize="14sp"
+        android:textStyle="normal"
+        />
+
+    <TextView
+        android:id="@+id/fragment_payment_product_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif"
+        android:lineSpacingExtra="8sp"
+        android:textColor="@color/black"
+        android:textSize="20sp"
+        android:textStyle="normal"
+        tools:text="5M chips"
+        />
+
+  </LinearLayout>
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_below="@id/include_payment_product_icon"
+      android:layout_marginTop="16dp"
+      android:orientation="vertical"
+      >
+
+    <TextView
+        android:id="@+id/fragment_payment_product_price_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="16dp"
+        android:layout_marginStart="16dp"
+        android:fontFamily="sans-serif"
+        android:lineSpacingExtra="6sp"
+        android:text="@string/fragment_payment_product_price_title"
+        android:textColor="@color/grey"
+        android:textSize="14sp"
+        android:textStyle="normal"
+        />
+
+    <TextView
+        android:id="@+id/include_payment_product_price"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="16dp"
+        android:layout_marginStart="16dp"
+        android:fontFamily="sans-serif"
+        android:lineSpacingExtra="8sp"
+        android:textColor="@color/black"
+        android:textSize="20sp"
+        android:textStyle="normal"
+        tools:text="€ 8.96"
+        />
+
+    <TextView
+        android:id="@+id/fragment_payment_saved_methods_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:fontFamily="sans-serif"
+        android:lineSpacingExtra="6sp"
+        android:text="@string/fragment_payment_saved_methods_title"
+        android:textColor="@color/grey"
+        android:textSize="14sp"
+        android:textStyle="normal"
+        />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="8dp"
+        android:background="@color/grey_fog_light"
+        />
+
+    <RadioGroup
+        android:id="@+id/fragment_payment_authorization_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:divider="@drawable/fragment_payment_authorization_list_divider"
+        android:showDividers="middle"
+        android:orientation="vertical"
+        />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/grey_fog_light"
+        android:layout_marginBottom="8dp"
+        />
+
+    <Button
+        android:id="@+id/fragment_payment_add_payment_method_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:drawableLeft="@drawable/payment_plus_icon"
+        android:drawablePadding="16dp"
+        android:drawableStart="@drawable/payment_plus_icon"
+        android:gravity="start|center"
+        android:paddingLeft="16dp"
+        android:paddingStart="16dp"
+        android:text="@string/fragment_payment_add_payment_method_button"
+        style="@style/Widget.Aptoide.Button.Borderless.Colored"
+        />
+  </LinearLayout>
+
+  <Button
+      android:id="@+id/fragment_payment_buy_button"
+      android:layout_width="match_parent"
+      android:layout_height="60dp"
+      android:layout_alignParentBottom="true"
+      android:layout_marginBottom="10dp"
+      android:layout_marginEnd="12dp"
+      android:layout_marginLeft="12dp"
+      android:layout_marginRight="12dp"
+      android:layout_marginStart="12dp"
+      android:layout_marginTop="10dp"
+      android:text="@string/buy"
+      style="@style/Widget.Aptoide.Button.Colored"
+      />
+
+  <LinearLayout
+      android:layout_below="@id/fragment_payment_app_bar"
+      android:elevation="10dp"
       android:id="@+id/fragment_payment_global_progress_bar"
-      android:layout_width="0dp"
-      android:layout_height="0dp"
-      android:layout_alignBottom="@id/fragment_payment_scroll"
-      android:layout_alignEnd="@id/fragment_payment_scroll"
-      android:layout_alignLeft="@id/fragment_payment_scroll"
-      android:layout_alignRight="@id/fragment_payment_scroll"
-      android:layout_alignStart="@id/fragment_payment_scroll"
-      android:layout_alignTop="@id/fragment_payment_scroll"
-      android:background="@drawable/dialog_bg"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:background="@color/white"
       android:clickable="true"
+      android:focusable="true"
       android:gravity="center"
       android:orientation="vertical"
       android:visibility="gone"

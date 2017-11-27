@@ -94,11 +94,11 @@ public class CreditCardAuthorizationFragment extends PermissionServiceFragment
     progressBar = view.findViewById(R.id.fragment_credit_card_authorization_progress_bar);
     overlay = view.findViewById(R.id.fragment_credit_card_authorization_overlay);
     productIcon = (ImageView) view.findViewById(R.id.include_payment_product_icon);
-    productName = (TextView) view.findViewById(R.id.include_payment_product_name);
-    productDescription = (TextView) view.findViewById(R.id.include_payment_product_description);
+    productName = (TextView) view.findViewById(R.id.fragment_payment_product_name);
+    productDescription = (TextView) view.findViewById(R.id.include_payment_product_title);
     productPrice = (TextView) view.findViewById(R.id.include_payment_product_price);
     cancelButton = (Button) view.findViewById(R.id.include_payment_buttons_cancel_button);
-    buyButton = (Button) view.findViewById(R.id.include_payment_buttons_buy_button);
+    buyButton = (Button) view.findViewById(R.id.fragment_payment_buy_button);
     rememberCardCheckBox = (CheckBox) view.findViewById(
         R.id.fragment_credit_card_authorization_remember_card_check_box);
     buyButton.setVisibility(View.GONE);

@@ -29,13 +29,13 @@ public interface PaymentView extends View {
 
   void showProduct(Product product);
 
+  void showMerchant(String merchantName);
+
   void hidePaymentLoading();
 
   void hidePurchaseLoading();
 
   void hideBuyLoading();
-
-  void showPaymentsNotFoundMessage();
 
   void showNetworkError();
 

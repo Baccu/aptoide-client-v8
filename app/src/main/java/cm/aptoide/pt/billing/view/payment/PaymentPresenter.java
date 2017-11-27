@@ -218,12 +218,8 @@ public class PaymentPresenter implements Presenter {
   }
 
   private void showPayment(Payment payment) {
+    view.showMerchant(merchantName);
     view.showProduct(payment.getProduct());
-    if (payment.getPaymentServices()
-        .isEmpty()) {
-      view.showPaymentsNotFoundMessage();
-    } else {
-      view.showPayments(payment.getPaymentServices(), payment.getSelectedPaymentService());
-    }
+    view.showPayments(payment.getPaymentServices(), payment.getSelectedPaymentService());
   }
 }

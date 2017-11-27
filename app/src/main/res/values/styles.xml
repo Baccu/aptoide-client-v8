@@ -490,34 +490,20 @@
     <item name="android:typeface">normal</item>
   </style>
 
-  <style name="TextAppearance.Aptoide.Title.Inverse">
-    <item name="android:textColor">@color/activity_payment_gray</item>
-  </style>
-
-  <style name="TextAppearance.Aptoide.Subhead" parent="@style/TextAppearance.AppCompat.Subhead">
-    <item name="android:textColor">@color/fragment_payment_dark_gray</item>
-    <item name="android:typeface">normal</item>
-  </style>
-
-  <style name="TextAppearance.Aptoide.Caption" parent="@style/TextAppearance.AppCompat.Caption">
-    <item name="android:textColor">@color/fragment_payment_dark_gray</item>
-    <item name="android:typeface">normal</item>
-  </style>
-
-  <style name="TextAppearance.Aptoide.Caption.Inverse">
-    <item name="android:textColor">@color/activity_payment_gray</item>
-  </style>
-
   <style name="Widget.Aptoide.Button.Borderless.Colored" parent="@style/Widget.AppCompat.Button.Borderless.Colored">
-    <item name="android:textColor">@color/fragment_payment_dark_gray</item>
-  </style>
-
-  <style name="Widget.Aptoide.Button.Borderless" parent="@style/Widget.AppCompat.Button.Borderless">
-    <item name="android:textColor">@color/fragment_payment_light_gray</item>
+    <item name="android:textColor">?colorPrimary</item>
   </style>
 
   <style name="Widget.Aptoide.Button.Colored" parent="@style/Widget.AppCompat.Button.Colored">
     <item name="android:textColor">@color/white</item>
+  </style>
+
+  <style name="TextAppearance.Aptoide.Small" parent="@style/TextAppearance.AppCompat.Small">
+    <item name="android:textSize">14sp</item>
+    <item name="android:fontFamily">sans-serif</item>
+    <item name="android:textStyle">normal</item>
+    <item name="android:textColor">@color/grey</item>
+    <item name="android:lineSpacingExtra">6sp</item>
   </style>
 
   <style name="Widget.Aptoide.Button" parent="@style/Widget.AppCompat.Button">
