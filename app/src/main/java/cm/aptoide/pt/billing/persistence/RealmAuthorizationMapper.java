@@ -63,8 +63,7 @@ public class RealmAuthorizationMapper {
   public Authorization map(RealmAuthorization realmAuthorization) {
     return authorizationFactory.create(realmAuthorization.getId(),
         realmAuthorization.getCustomerId(), realmAuthorization.getType(),
-        Authorization.Status.valueOf(realmAuthorization.getStatus()), null, null,
-        realmAuthorization.getMetadata(),
+        Authorization.Status.valueOf(realmAuthorization.getStatus()), realmAuthorization.getMetadata(),
         new Price(realmAuthorization.getAmount(), realmAuthorization.getCurrency(),
             realmAuthorization.getCurrencySymbol()), realmAuthorization.getDescription(),
         realmAuthorization.getTransactionId(), null);

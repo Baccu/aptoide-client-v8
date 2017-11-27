@@ -146,26 +146,8 @@ public class GetAuthorizationRequest
 
       public static class Metadata {
 
-        private String url;
-        private String redirectUrl;
         private String description;
         private String session;
-
-        public String getUrl() {
-          return url;
-        }
-
-        public void setUrl(String url) {
-          this.url = url;
-        }
-
-        public String getRedirectUrl() {
-          return redirectUrl;
-        }
-
-        public void setRedirectUrl(String redirectUrl) {
-          this.redirectUrl = redirectUrl;
-        }
 
         public String getDescription() {
           return description;

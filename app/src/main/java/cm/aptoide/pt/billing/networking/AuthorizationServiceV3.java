@@ -75,13 +75,12 @@ public class AuthorizationServiceV3 implements AuthorizationService {
             }
             return Single.just(
                 authorizationFactory.create(billingIdManager.generateAuthorizationId(1), customerId,
-                    AuthorizationFactory.PAYPAL_SDK, Authorization.Status.REDEEMED, null, null,
-                    null, null, null, transactionId, null));
+                    AuthorizationFactory.PAYPAL_SDK, Authorization.Status.REDEEMED, null, null, null, transactionId, null));
           }
 
           return Single.just(
               authorizationFactory.create(billingIdManager.generateAuthorizationId(1), customerId,
-                  AuthorizationFactory.PAYPAL_SDK, Authorization.Status.FAILED, null, null, null,
+                  AuthorizationFactory.PAYPAL_SDK, Authorization.Status.FAILED, null,
                   null, null, transactionId, null));
         });
   }
@@ -125,7 +124,7 @@ public class AuthorizationServiceV3 implements AuthorizationService {
 
           return Single.just(
               authorizationFactory.create(billingIdManager.generateAuthorizationId(1), customerId,
-                  AuthorizationFactory.PAYPAL_SDK, Authorization.Status.FAILED, null, null, null,
+                  AuthorizationFactory.PAYPAL_SDK, Authorization.Status.FAILED, null,
                   null, null, transactionId, null));
         });
   }

@@ -83,7 +83,7 @@ public class RealmAuthorizationPersistence implements AuthorizationPersistence {
         .flatMap(authorization -> {
           final Authorization updatedAuthorization =
               authorizationFactory.create(authorization.getId(), authorization.getCustomerId(),
-                  authorizationFactory.getType(authorization), status, null, null, metadata, null,
+                  authorizationFactory.getType(authorization), status, metadata, null,
                   null, authorization.getTransactionId(), null);
           return saveAuthorization(updatedAuthorization).andThen(Single.just(updatedAuthorization));
         });
@@ -93,8 +93,7 @@ public class RealmAuthorizationPersistence implements AuthorizationPersistence {
   public Single<Authorization> createAuthorization(String customerId, String transactionId,
       Authorization.Status status) {
     final Authorization authorization =
-        authorizationFactory.create(idGenerator.generate(), customerId, null, status, null, null,
-            null, null, null, transactionId, null);
+        authorizationFactory.create(idGenerator.generate(), customerId, null, status, null, null, null, transactionId, null);
     return saveAuthorization(authorization).andThen(Single.just(authorization));
   }
 

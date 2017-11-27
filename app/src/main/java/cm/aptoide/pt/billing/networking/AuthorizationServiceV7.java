@@ -76,13 +76,13 @@ public class AuthorizationServiceV7 implements AuthorizationService {
           if (response.code() == 404) {
             return Single.just(
                 authorizationFactory.create(billingIdManager.generateAuthorizationId(), customerId,
-                    null, Authorization.Status.NEW, null, null, null, null, null, transactionId,
+                    null, Authorization.Status.NEW, null, null, null, transactionId,
                     null));
           }
 
           return Single.just(
               authorizationFactory.create(billingIdManager.generateAuthorizationId(), customerId,
-                  null, Authorization.Status.FAILED, null, null, null, null, null, transactionId,
+                  null, Authorization.Status.FAILED, null, null, null, transactionId,
                   null));
         });
   }
@@ -101,7 +101,7 @@ public class AuthorizationServiceV7 implements AuthorizationService {
           }
           return Single.just(
               authorizationFactory.create(billingIdManager.generateAuthorizationId(), customerId,
-                  null, Authorization.Status.FAILED, null, null, null, null, null, transactionId,
+                  null, Authorization.Status.FAILED, null, null, null, transactionId,
                   null));
         });
   }

@@ -34,20 +34,16 @@ public class AuthorizationMapperV7 {
     }
 
     final GetAuthorizationRequest.ResponseBody.Authorization.Metadata metadata = response.getData();
-    String url = null;
-    String redirectUrl = null;
     String description = null;
     String session = null;
     if (metadata != null) {
-      url = metadata.getUrl();
-      redirectUrl = metadata.getRedirectUrl();
       description = metadata.getDescription();
       session = metadata.getSession();
     }
 
     return authorizationFactory.create(billingIdManager.generateAuthorizationId(response.getId()),
         String.valueOf(response.getUser()
-            .getId()), response.getType(), Authorization.Status.valueOf(response.getStatus()), url,
-        redirectUrl, null, price, description, transactionId, session);
+            .getId()), response.getType(), Authorization.Status.valueOf(response.getStatus()), null,
+        price, description, transactionId, session);
   }
 }

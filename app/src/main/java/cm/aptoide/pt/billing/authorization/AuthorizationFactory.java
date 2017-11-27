@@ -8,8 +8,8 @@ public class AuthorizationFactory {
   public static final String ADYEN_SDK = "ADYEN_SDK";
 
   public Authorization create(String id, String customerId, String type,
-      Authorization.Status status, String url, String redirectUrl, String metadata, Price price,
-      String description, String transactionId, String session) {
+      Authorization.Status status, String metadata, Price price, String description,
+      String transactionId, String session) {
 
     if (type == null) {
       return new Authorization(id, customerId, status, transactionId);
