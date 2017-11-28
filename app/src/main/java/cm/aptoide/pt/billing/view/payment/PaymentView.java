@@ -21,8 +21,6 @@ public interface PaymentView extends View {
 
   void showPaymentLoading();
 
-  void showPurchaseLoading();
-
   void showBuyLoading();
 
   void showPayments(List<PaymentService> paymentList, PaymentService selectedService);
@@ -32,8 +30,6 @@ public interface PaymentView extends View {
   void showMerchant(String merchantName);
 
   void hidePaymentLoading();
-
-  void hidePurchaseLoading();
 
   void hideBuyLoading();
 

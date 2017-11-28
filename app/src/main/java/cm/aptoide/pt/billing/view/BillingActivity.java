@@ -12,6 +12,7 @@ import android.support.annotation.Nullable;
 import cm.aptoide.pt.AptoideApplication;
 import cm.aptoide.pt.R;
 import cm.aptoide.pt.billing.Billing;
+import cm.aptoide.pt.billing.view.login.PaymentLoginFragment;
 import cm.aptoide.pt.billing.view.payment.PaymentFragment;
 import cm.aptoide.pt.view.BackButtonActivity;
 
@@ -49,7 +50,7 @@ public class BillingActivity extends BackButtonActivity {
 
     if (savedInstanceState == null) {
       getFragmentNavigator().navigateToWithoutBackSave(
-          PaymentFragment.create(getIntent().getExtras()), true);
+          PaymentLoginFragment.create(getIntent().getExtras()), true);
     }
 
     billing = ((AptoideApplication) getApplication()).getBilling(

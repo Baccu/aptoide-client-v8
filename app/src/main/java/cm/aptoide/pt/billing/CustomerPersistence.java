@@ -5,12 +5,12 @@
 
 package cm.aptoide.pt.billing;
 
+import cm.aptoide.pt.billing.customer.Customer;
 import rx.Observable;
 import rx.Single;
 
-public interface Customer {
+public interface CustomerPersistence {
 
-  Single<String> getId();
+  Observable<Customer> getCustomer();
 
-  Observable<Boolean> isAuthenticated();
 }

@@ -25,6 +25,8 @@ import cm.aptoide.pt.account.view.AccountErrorMapper;
 import cm.aptoide.pt.account.view.AccountNavigator;
 import cm.aptoide.pt.account.view.GooglePlayServicesFragment;
 import cm.aptoide.pt.analytics.ScreenTagHistory;
+import cm.aptoide.pt.billing.view.BillingActivity;
+import cm.aptoide.pt.billing.view.BillingNavigator;
 import cm.aptoide.pt.crashreports.CrashReport;
 import cm.aptoide.pt.navigator.ActivityResultNavigator;
 import cm.aptoide.pt.navigator.FragmentNavigator;
@@ -50,7 +52,6 @@ public class PaymentLoginFragment extends GooglePlayServicesFragment implements 
       "cm.aptoide.pt.billing.view.login.extra.FACEBOOK_DIALOG_VISIBLE";
   private static final String EXTRA_PROGRESS_VISIBLE =
       "cm.aptoide.pt.billing.view.login.extra.PROGRESS_VISIBLE";
-  private int requestCode;
   private ClickHandler handler;
   private PublishRelay<Void> backButtonRelay;
   private PublishRelay<Void> upNavigationRelay;
@@ -84,18 +85,21 @@ public class PaymentLoginFragment extends GooglePlayServicesFragment implements 
   private boolean progressVisible;
   private boolean facebookEmailRequiredDialogVisible;
   private ScreenOrientationManager orientationManager;
+  private BillingNavigator billingNavigator;
 
-  public static Fragment newInstance() {
-    return new PaymentLoginFragment();
+  public static Fragment create(Bundle bundle) {
+    final PaymentLoginFragment fragment = new PaymentLoginFragment();
+    fragment.setArguments(bundle);
+    return fragment;
   }
 
   @Override public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    requestCode = getArguments().getInt(FragmentNavigator.REQUEST_CODE_EXTRA);
     backButtonRelay = PublishRelay.create();
     upNavigationRelay = PublishRelay.create();
     passwordKeyboardGoRelay = PublishRelay.create();
     accountNavigator = ((ActivityResultNavigator) getContext()).getAccountNavigator();
+    billingNavigator = ((ActivityResultNavigator) getContext()).getBillingNavigator();
     accountManager =
         ((AptoideApplication) getContext().getApplicationContext()).getAccountManager();
     crashReport = CrashReport.getInstance();
@@ -240,9 +244,13 @@ public class PaymentLoginFragment extends GooglePlayServicesFragment implements 
     }
 
     attachPresenter(
-        new PaymentLoginPresenter(this, requestCode, Arrays.asList("email", "user_friends"),
+        new PaymentLoginPresenter(this, Arrays.asList("email", "user_friends"),
             accountNavigator, Arrays.asList("email"), accountManager, crashReport, errorMapper,
-            AndroidSchedulers.mainThread(), orientationManager, application.getAccountAnalytics()));
+            AndroidSchedulers.mainThread(), orientationManager, application.getAccountAnalytics(),
+            application.getBillingAnalytics(), billingNavigator,
+            getArguments().getString(BillingActivity.EXTRA_MERCHANT_NAME),
+            getArguments().getString(BillingActivity.EXTRA_SKU),
+            getArguments().getString(BillingActivity.EXTRA_DEVELOPER_PAYLOAD)));
   }
 
   @Override public void onDestroyView() {

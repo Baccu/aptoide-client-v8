@@ -47,12 +47,6 @@ public class BillingAnalytics {
   }
 
   public void sendCustomerAuthenticatedEvent(boolean customerAuthenticated) {
-    if (customerAuthenticated) {
-      analytics.sendEvent(getFacebookPaymentEvent("Payment_Login", "Success", new Bundle()));
-    }
-  }
-
-  public void sendCustomerAuthenticationResultEvent(boolean customerAuthenticated) {
     final String action;
     if (customerAuthenticated) {
       action = "Success";

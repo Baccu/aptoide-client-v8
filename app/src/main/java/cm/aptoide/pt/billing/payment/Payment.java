@@ -1,6 +1,8 @@
 package cm.aptoide.pt.billing.payment;
 
+import cm.aptoide.pt.billing.Merchant;
 import cm.aptoide.pt.billing.authorization.Authorization;
+import cm.aptoide.pt.billing.customer.Customer;
 import cm.aptoide.pt.billing.product.Product;
 import cm.aptoide.pt.billing.purchase.Purchase;
 import cm.aptoide.pt.billing.transaction.AuthorizedTransaction;
@@ -9,19 +11,31 @@ import java.util.List;
 
 public class Payment {
 
+  private final Merchant merchant;
+  private final Customer customer;
   private final Product product;
   private final PaymentService selectedPaymentService;
   private final Transaction transaction;
   private final Purchase purchase;
   private final List<PaymentService> paymentServices;
 
-  public Payment(Product product, PaymentService selectedPaymentService, Transaction transaction,
+  public Payment(Merchant merchant, Customer customer, Product product, PaymentService selectedPaymentService, Transaction transaction,
       Purchase purchase, List<PaymentService> paymentServices) {
+    this.merchant = merchant;
+    this.customer = customer;
     this.product = product;
     this.selectedPaymentService = selectedPaymentService;
     this.transaction = transaction;
     this.purchase = purchase;
     this.paymentServices = paymentServices;
+  }
+
+  public Merchant getMerchant() {
+    return merchant;
+  }
+
+  public Customer getCustomer() {
+    return customer;
   }
 
   public Product getProduct() {

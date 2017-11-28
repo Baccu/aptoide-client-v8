@@ -6,6 +6,8 @@ import cm.aptoide.pt.account.FacebookSignUpAdapter;
 import cm.aptoide.pt.account.FacebookSignUpException;
 import cm.aptoide.pt.account.GoogleSignUpAdapter;
 import cm.aptoide.pt.account.view.AccountNavigator;
+import cm.aptoide.pt.billing.BillingAnalytics;
+import cm.aptoide.pt.billing.view.BillingNavigator;
 import cm.aptoide.pt.crashreports.CrashReport;
 import cm.aptoide.pt.orientation.ScreenOrientationManager;
 import cm.aptoide.pt.presenter.Presenter;
@@ -14,13 +16,13 @@ import cm.aptoide.pt.view.ThrowableToStringMapper;
 import java.util.Collection;
 import rx.Observable;
 import rx.Scheduler;
+import rx.exceptions.OnErrorNotImplementedException;
 
 public class PaymentLoginPresenter implements Presenter {
 
   private static final int RESOLVE_GOOGLE_CREDENTIALS_REQUEST_CODE = 2;
   private final PaymentLoginView view;
   private final AccountNavigator accountNavigator;
-  private final int requestCode;
   private final Collection<String> permissions;
   private final Collection<String> requiredPermissions;
   private final AptoideAccountManager accountManager;
@@ -29,15 +31,21 @@ public class PaymentLoginPresenter implements Presenter {
   private final Scheduler viewScheduler;
   private final ScreenOrientationManager orientationManager;
   private final AccountAnalytics accountAnalytics;
+  private final BillingAnalytics billingAnalytics;
+  private final BillingNavigator billingNavigator;
+  private final String merchantName;
+  private final String sku;
+  private final String payload;
 
-  public PaymentLoginPresenter(PaymentLoginView view, int requestCode,
-      Collection<String> permissions, AccountNavigator accountNavigator,
-      Collection<String> requiredPermissions, AptoideAccountManager accountManager,
-      CrashReport crashReport, ThrowableToStringMapper errorMapper, Scheduler viewScheduler,
-      ScreenOrientationManager orientationManager, AccountAnalytics accountAnalytics) {
+  public PaymentLoginPresenter(PaymentLoginView view, Collection<String> permissions,
+      AccountNavigator accountNavigator, Collection<String> requiredPermissions,
+      AptoideAccountManager accountManager, CrashReport crashReport,
+      ThrowableToStringMapper errorMapper, Scheduler viewScheduler,
+      ScreenOrientationManager orientationManager, AccountAnalytics accountAnalytics,
+      BillingAnalytics billingAnalytics, BillingNavigator billingNavigator, String merchantName,
+      String sku, String payload) {
     this.view = view;
     this.accountNavigator = accountNavigator;
-    this.requestCode = requestCode;
     this.permissions = permissions;
     this.requiredPermissions = requiredPermissions;
     this.accountManager = accountManager;
@@ -46,13 +54,18 @@ public class PaymentLoginPresenter implements Presenter {
     this.viewScheduler = viewScheduler;
     this.orientationManager = orientationManager;
     this.accountAnalytics = accountAnalytics;
+    this.billingAnalytics = billingAnalytics;
+    this.billingNavigator = billingNavigator;
+    this.merchantName = merchantName;
+    this.sku = sku;
+    this.payload = payload;
   }
 
   @Override public void present() {
 
     onViewCreatedCheckLoginStatus();
 
-    handleBackButtonAndUpNavigationEvent();
+    handleCancelEvent();
 
     handleFacebookSignUpResult();
 
@@ -75,22 +88,30 @@ public class PaymentLoginPresenter implements Presenter {
     view.getLifecycle()
         .filter(event -> event.equals(View.LifecycleEvent.CREATE))
         .flatMap(__ -> view.grantFacebookRequiredPermissionsEvent())
-        .doOnNext(__ -> view.showLoading())
-        .doOnNext(__ -> accountNavigator.navigateToFacebookSignUpForResult(requiredPermissions))
         .compose(view.bindUntilEvent(View.LifecycleEvent.DESTROY))
-        .subscribe();
+        .subscribe(__ -> {
+          view.showLoading();
+          accountNavigator.navigateToFacebookSignUpForResult(requiredPermissions);
+        }, throwable -> {
+          throw new OnErrorNotImplementedException(throwable);
+        });
   }
 
   private void onViewCreatedCheckLoginStatus() {
     view.getLifecycle()
-        .filter(event -> event.equals(View.LifecycleEvent.CREATE))
-        .flatMap(__ -> accountManager.accountStatus())
-        .filter(account -> account.isLoggedIn())
-        .doOnNext(account -> accountAnalytics.loginSuccess())
+        .filter(event -> event.equals(View.LifecycleEvent.RESUME))
+        .flatMap(__ -> accountManager.accountStatus()
+            .filter(account -> account.isLoggedIn())
+            .compose(view.bindUntilEvent(View.LifecycleEvent.PAUSE)))
         .observeOn(viewScheduler)
-        .doOnNext(__ -> accountNavigator.popViewWithResult(requestCode, true))
         .compose(view.bindUntilEvent(View.LifecycleEvent.DESTROY))
-        .subscribe();
+        .subscribe(__ -> {
+          accountAnalytics.loginSuccess();
+          billingAnalytics.sendCustomerAuthenticatedEvent(true);
+          billingNavigator.navigateToPaymentView(merchantName, sku, payload);
+        }, throwable -> {
+          throw new OnErrorNotImplementedException(throwable);
+        });
   }
 
   private void handleAptoideSignUpEvent() {
@@ -224,21 +245,26 @@ public class PaymentLoginPresenter implements Presenter {
         .subscribe();
   }
 
-  private void handleBackButtonAndUpNavigationEvent() {
+  private void handleCancelEvent() {
     view.getLifecycle()
         .filter(event -> event.equals(View.LifecycleEvent.CREATE))
         .flatMap(__ -> Observable.merge(view.backButtonEvent(), view.upNavigationEvent()))
-        .doOnNext(__ -> accountNavigator.popViewWithResult(requestCode, false))
         .compose(view.bindUntilEvent(View.LifecycleEvent.DESTROY))
-        .subscribe();
+        .subscribe(__ -> {
+          billingAnalytics.sendCustomerAuthenticatedEvent(false);
+          billingNavigator.popViewWithResult();
+        }, throwable -> {
+          throw new OnErrorNotImplementedException(throwable);
+        });
   }
 
   private void handleRecoverPasswordEvent() {
     view.getLifecycle()
         .filter(event -> event.equals(View.LifecycleEvent.CREATE))
         .flatMap(__ -> view.recoverPasswordEvent())
-        .doOnNext(__ -> accountNavigator.navigateToRecoverPasswordView())
         .compose(view.bindUntilEvent(View.LifecycleEvent.DESTROY))
-        .subscribe();
+        .subscribe(__ -> accountNavigator.navigateToRecoverPasswordView(), throwable -> {
+          throw new OnErrorNotImplementedException(throwable);
+        });
   }
 }

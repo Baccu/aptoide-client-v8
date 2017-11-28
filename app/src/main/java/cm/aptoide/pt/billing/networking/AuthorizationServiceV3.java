@@ -3,7 +3,7 @@ package cm.aptoide.pt.billing.networking;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import cm.aptoide.pt.billing.BillingIdManager;
-import cm.aptoide.pt.billing.Customer;
+import cm.aptoide.pt.billing.CustomerPersistence;
 import cm.aptoide.pt.billing.authorization.Authorization;
 import cm.aptoide.pt.billing.authorization.AuthorizationFactory;
 import cm.aptoide.pt.billing.authorization.AuthorizationService;
@@ -29,7 +29,7 @@ public class AuthorizationServiceV3 implements AuthorizationService {
   private final Converter.Factory converterFactory;
   private final TokenInvalidator tokenInvalidator;
   private final SharedPreferences sharedPreferences;
-  private final Customer customer;
+  private final CustomerPersistence customerPersistence;
   private final Resources resources;
   private final BillingIdManager billingIdManager;
 
@@ -37,7 +37,7 @@ public class AuthorizationServiceV3 implements AuthorizationService {
       AuthorizationMapperV3 authorizationMapper, TransactionMapperV3 transactionMapper,
       TransactionPersistence transactionPersistence, BodyInterceptor<BaseBody> bodyInterceptorV3,
       OkHttpClient httpClient, Converter.Factory converterFactory,
-      TokenInvalidator tokenInvalidator, SharedPreferences sharedPreferences, Customer customer,
+      TokenInvalidator tokenInvalidator, SharedPreferences sharedPreferences, CustomerPersistence customerPersistence,
       Resources resources, BillingIdManager billingIdManager) {
     this.authorizationFactory = authorizationFactory;
     this.authorizationMapper = authorizationMapper;
@@ -48,7 +48,7 @@ public class AuthorizationServiceV3 implements AuthorizationService {
     this.converterFactory = converterFactory;
     this.tokenInvalidator = tokenInvalidator;
     this.sharedPreferences = sharedPreferences;
-    this.customer = customer;
+    this.customerPersistence = customerPersistence;
     this.resources = resources;
     this.billingIdManager = billingIdManager;
   }

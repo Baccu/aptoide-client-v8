@@ -11,6 +11,7 @@ import cm.aptoide.pt.billing.payment.PaymentService;
 import cm.aptoide.pt.billing.purchase.Purchase;
 import cm.aptoide.pt.billing.view.card.CreditCardAuthorizationFragment;
 import cm.aptoide.pt.billing.view.login.PaymentLoginFragment;
+import cm.aptoide.pt.billing.view.payment.PaymentFragment;
 import cm.aptoide.pt.billing.view.paypal.PayPalAuthorizationFragment;
 import cm.aptoide.pt.navigator.ActivityNavigator;
 import cm.aptoide.pt.navigator.CustomTabsNavigator;
@@ -26,6 +27,7 @@ import rx.Observable;
 
 public class BillingNavigator {
 
+  private static final int CUSTOMER_AUTHORIZATION_REQUEST_CODE = 2001;
   private final PurchaseBundleMapper bundleMapper;
   private final ActivityNavigator activityNavigator;
   private final FragmentNavigator fragmentNavigator;
@@ -44,19 +46,16 @@ public class BillingNavigator {
     this.customTabsToolbarColor = customTabsToolbarColor;
   }
 
-  public void navigateToCustomerAuthenticationForResult(int requestCode) {
-    fragmentNavigator.navigateForResult(PaymentLoginFragment.newInstance(), requestCode, true);
-  }
-
-  public Observable<Boolean> customerAuthenticationResults(int requestCode) {
-    return fragmentNavigator.results(requestCode)
-        .map(result -> result.getResultCode() == Activity.RESULT_OK);
+  public void navigateToCustomerAuthenticationView(String merchantName, String sku,
+      String payload) {
+    fragmentNavigator.navigateTo(
+        PaymentLoginFragment.create(getBillingBundle(merchantName, sku, payload)), true);
   }
 
   public void navigateToTransactionAuthorizationView(String merchantName, PaymentService service,
       String sku) {
 
-    final Bundle bundle = getAuthorizationBundle(merchantName, sku, service.getType());
+    final Bundle bundle = getBillingBundle(merchantName, sku, service.getType());
 
     switch (service.getType()) {
       case PaymentServiceMapper.PAYPAL:
@@ -109,7 +108,7 @@ public class BillingNavigator {
         bundleMapper.mapCancellation());
   }
 
-  private Bundle getAuthorizationBundle(String merchantName, String sku, String serviceName) {
+  private Bundle getBillingBundle(String merchantName, String sku, String serviceName) {
     final Bundle bundle = new Bundle();
     bundle.putString(BillingActivity.EXTRA_SKU, sku);
     bundle.putString(BillingActivity.EXTRA_MERCHANT_NAME, merchantName);
@@ -146,6 +145,11 @@ public class BillingNavigator {
 
   public Observable<Uri> uriResults() {
     return customTabsNavigator.customTabResults();
+  }
+
+  public void navigateToPaymentView(String merchantName, String sku, String payload) {
+    fragmentNavigator.navigateToWithoutBackSave(
+        PaymentFragment.create(getBillingBundle(merchantName, sku, payload)), true);
   }
 
   public static class PayPalResult {

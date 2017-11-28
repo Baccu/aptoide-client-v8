@@ -9,7 +9,7 @@ import cm.aptoide.pt.billing.authorization.AuthorizationFactory;
 import cm.aptoide.pt.billing.authorization.AuthorizationPersistence;
 import cm.aptoide.pt.billing.authorization.AuthorizationRepository;
 import cm.aptoide.pt.billing.authorization.LocalIdGenerator;
-import cm.aptoide.pt.billing.customer.AccountCustomer;
+import cm.aptoide.pt.billing.customer.AccountCustomerPersistence;
 import cm.aptoide.pt.billing.external.ExternalBillingSerializer;
 import cm.aptoide.pt.billing.networking.AuthorizationMapperV3;
 import cm.aptoide.pt.billing.networking.AuthorizationMapperV7;
@@ -103,7 +103,7 @@ public class BillingPool {
   private PaymentServiceSelector serviceSelector;
   private AuthorizationPersistence authorizationPersistence;
   private TransactionPersistence transactionPersistence;
-  private Customer customer;
+  private CustomerPersistence customerPersistence;
   private TransactionFactory transactionFactory;
   private AuthorizationFactory authorizationFactory;
   private PurchaseTokenDecoder purchaseTokenDecoder;
@@ -162,11 +162,11 @@ public class BillingPool {
   private Billing create(String merchantName) {
     if (merchantName.equals(BuildConfig.APPLICATION_ID)) {
       return new Billing(merchantName, getBillingServiceV3(), getPaidAppTransactionRepository(),
-          getPaidAppAuthorizationRepository(), getServiceSelector(), getCustomer(),
+          getPaidAppAuthorizationRepository(), getServiceSelector(), getCustomerPersistence(),
           getPurchaseTokenDecoder(), getBillingSyncSchedulerV3());
     } else {
       return new Billing(merchantName, getBillingServiceV7(), getInAppTransactionRepository(),
-          getInAppAuthorizationRepository(), getServiceSelector(), getCustomer(),
+          getInAppAuthorizationRepository(), getServiceSelector(), getCustomerPersistence(),
           getPurchaseTokenDecoder(), getBillingSyncSchedulerV7());
     }
   }
@@ -175,7 +175,7 @@ public class BillingPool {
     if (paidAppAuthorizationRepository == null) {
       paidAppTransactionRepository =
           new TransactionRepository(getTransactionPersistence(), getBillingSyncSchedulerV3(),
-              getCustomer(), getTransactionServiceV3());
+              getTransactionServiceV3());
     }
     return paidAppTransactionRepository;
   }
@@ -183,8 +183,7 @@ public class BillingPool {
   private AuthorizationRepository getPaidAppAuthorizationRepository() {
     if (paidAppAuthorizationRepository == null) {
       paidAppAuthorizationRepository =
-          new AuthorizationRepository(getBillingSyncSchedulerV3(), getCustomer(),
-              getAuthorizationPersistence(), authorizationFactory);
+          new AuthorizationRepository(getBillingSyncSchedulerV3(), getAuthorizationPersistence());
     }
     return paidAppAuthorizationRepository;
   }
@@ -219,8 +218,7 @@ public class BillingPool {
   private AuthorizationRepository getInAppAuthorizationRepository() {
     if (inAppAuthorizationRepository == null) {
       inAppAuthorizationRepository =
-          new AuthorizationRepository(getBillingSyncSchedulerV7(), getCustomer(),
-              getAuthorizationPersistence(), authorizationFactory);
+          new AuthorizationRepository(getBillingSyncSchedulerV7(), getAuthorizationPersistence());
     }
     return inAppAuthorizationRepository;
   }
@@ -229,7 +227,7 @@ public class BillingPool {
     if (inAppTransactionRepository == null) {
       inAppTransactionRepository =
           new TransactionRepository(getTransactionPersistence(), getBillingSyncSchedulerV7(),
-              getCustomer(), getTransactionServiceV7());
+              getTransactionServiceV7());
     }
     return inAppTransactionRepository;
   }
@@ -253,7 +251,7 @@ public class BillingPool {
   private BillingSyncScheduler getBillingSyncSchedulerV7() {
     if (billingSyncSchedulerV7 == null) {
       billingSyncSchedulerV7 = new BillingSyncManager(
-          new BillingSyncFactory(getCustomer(), getTransactionServiceV7(),
+          new BillingSyncFactory(getCustomerPersistence(), getTransactionServiceV7(),
               new AuthorizationServiceV7(
                   new AuthorizationMapperV7(getAuthorizationFactory(), getBillingIdManagerV7()),
                   httpClient, WebService.getDefaultConverter(), tokenInvalidator, sharedPreferences,
@@ -268,11 +266,12 @@ public class BillingPool {
   private BillingSyncScheduler getBillingSyncSchedulerV3() {
     if (billingSyncSchedulerV3 == null) {
       billingSyncSchedulerV3 = new BillingSyncManager(
-          new BillingSyncFactory(getCustomer(), getTransactionServiceV3(),
+          new BillingSyncFactory(getCustomerPersistence(), getTransactionServiceV3(),
               new AuthorizationServiceV3(getAuthorizationFactory(),
                   new AuthorizationMapperV3(getAuthorizationFactory()), getTransactionMapperV3(),
                   getTransactionPersistence(), bodyInterceptorV3, httpClient,
-                  WebService.getDefaultConverter(), tokenInvalidator, sharedPreferences, customer,
+                  WebService.getDefaultConverter(), tokenInvalidator, sharedPreferences,
+                  customerPersistence,
                   resources, getBillingIdManagerV3()), getTransactionPersistence(),
               getAuthorizationPersistence(), getLocalIdGenerator()), syncScheduler, new HashSet<>(),
           new HashMap<>());
@@ -340,11 +339,11 @@ public class BillingPool {
     return authorizationFactory;
   }
 
-  private Customer getCustomer() {
-    if (customer == null) {
-      customer = new AccountCustomer(accountManager);
+  private CustomerPersistence getCustomerPersistence() {
+    if (customerPersistence == null) {
+      customerPersistence = new AccountCustomerPersistence(accountManager);
     }
-    return customer;
+    return customerPersistence;
   }
 
   private TransactionFactory getTransactionFactory() {
