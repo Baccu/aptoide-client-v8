@@ -18,7 +18,6 @@ import cm.aptoide.pt.billing.purchase.Purchase;
 import cm.aptoide.pt.billing.transaction.AuthorizedTransaction;
 import cm.aptoide.pt.billing.transaction.Transaction;
 import cm.aptoide.pt.billing.transaction.TransactionRepository;
-import java.util.ArrayList;
 import java.util.List;
 import rx.Completable;
 import rx.Observable;
@@ -29,7 +28,6 @@ public class Billing {
   private final TransactionRepository transactionRepository;
   private final BillingService billingService;
   private final AuthorizationRepository authorizationRepository;
-  private final DefaultPaymentServicePersistence defaultPaymentServicePersistence;
   private final CustomerPersistence customerPersistence;
   private final PurchaseTokenDecoder tokenDecoder;
   private final String merchantName;
@@ -38,13 +36,11 @@ public class Billing {
 
   public Billing(String merchantName, BillingService billingService,
       TransactionRepository transactionRepository, AuthorizationRepository authorizationRepository,
-      DefaultPaymentServicePersistence defaultPaymentServicePersistence,
       CustomerPersistence customerPersistence, PurchaseTokenDecoder tokenDecoder,
       BillingSyncScheduler syncScheduler, MerchantVersionProvider versionProvider) {
     this.transactionRepository = transactionRepository;
     this.billingService = billingService;
     this.authorizationRepository = authorizationRepository;
-    this.defaultPaymentServicePersistence = defaultPaymentServicePersistence;
     this.customerPersistence = customerPersistence;
     this.tokenDecoder = tokenDecoder;
     this.merchantName = merchantName;
@@ -85,22 +81,25 @@ public class Billing {
   }
 
   public Completable processPayment(String serviceId, String sku, String payload) {
-    return defaultPaymentServicePersistence.saveDefaultService(serviceId)
-        .andThen(getPayment(sku).first()
-        .toSingle()
-        .flatMap(payment -> {
-          if (payment.getSelectedPaymentService() instanceof AdyenPaymentService) {
-            return ((AdyenPaymentService) payment.getSelectedPaymentService()).getToken()
+    return getPayment(sku).first()
+        .flatMap(payment -> Observable.from(payment.getPaymentServices())
+            .filter(service -> service.getId()
+                .equals(serviceId))
+            .switchIfEmpty(Observable.error(new IllegalStateException("Invalid payment service.")))
+            .flatMapSingle(selectedService -> {
+
+              if (selectedService instanceof AdyenPaymentService) {
+                return ((AdyenPaymentService) selectedService).getToken()
                 .flatMap(token -> transactionRepository.createTransaction(payment.getCustomer()
                     .getId(), payment.getProduct()
-                    .getId(), payment.getSelectedPaymentService()
+                    .getId(), selectedService
                     .getId(), payload, token));
-          }
-          return transactionRepository.createTransaction(payment.getCustomer()
-              .getId(), payment.getProduct()
-              .getId(), payment.getSelectedPaymentService()
-              .getId(), payload);
-        })
+              }
+              return transactionRepository.createTransaction(payment.getCustomer()
+                  .getId(), payment.getProduct()
+                  .getId(), selectedService.getId(), payload);
+            }))
+        .toSingle()
         .flatMapCompletable(
             transaction -> removeOldTransactions(transaction).andThen(Completable.defer(() -> {
               if (transaction.isPendingAuthorization()) {
@@ -113,7 +112,7 @@ public class Billing {
               }
 
               return Completable.complete();
-            }))));
+            })));
   }
 
   public Completable authorize(String sku, String metadata) {
@@ -157,20 +156,7 @@ public class Billing {
   }
 
   private Single<List<PaymentService>> getPaymentServices() {
-    return defaultPaymentServicePersistence.getDefaultService()
-        .flatMapObservable(defaultServiceId -> billingService.getPaymentServices()
-            .flatMapObservable(services -> Observable.from(services))
-            .scan(((List<PaymentService>) new ArrayList<PaymentService>()), (list, service) -> {
-
-              list.add(new PaymentService(service.getId(), service.getType(), service.getName(),
-                  service.getDescription(), service.getIcon(), service.getId()
-                  .equals(defaultServiceId)));
-
-              return list;
-            }))
-        .last()
-        .toSingle()
-        .onErrorResumeNext(billingService.getPaymentServices());
+    return billingService.getPaymentServices();
   }
 
   private Completable removeOldTransactions(Transaction transaction) {

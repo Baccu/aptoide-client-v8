@@ -1,9 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-  ~ Copyright (c) 2016.
-  ~ Modified by Marcelo Benites on 19/08/2016.
-  -->
-
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -27,12 +22,20 @@
         />
   </android.support.design.widget.AppBarLayout>
 
-
+  <ScrollView
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_below="@id/fragment_payment_app_bar"
+      android:layout_above="@+id/fragment_payment_buy_button"
+      >
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
   <ImageView
       android:id="@+id/include_payment_product_icon"
       android:layout_width="80dp"
       android:layout_height="80dp"
-      android:layout_below="@id/fragment_payment_app_bar"
       android:layout_marginLeft="16dp"
       android:layout_marginStart="16dp"
       android:layout_marginTop="16dp"
@@ -43,7 +46,6 @@
   <LinearLayout
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:layout_below="@id/fragment_payment_app_bar"
       android:layout_marginEnd="16dp"
       android:layout_marginLeft="16dp"
       android:layout_marginRight="16dp"
@@ -182,6 +184,8 @@
         style="@style/Widget.Aptoide.Button.Borderless.Colored"
         />
   </LinearLayout>
+    </RelativeLayout>
+  </ScrollView>
 
   <Button
       android:id="@+id/fragment_payment_buy_button"
@@ -199,7 +203,6 @@
       />
 
   <LinearLayout
-      android:layout_below="@id/fragment_payment_app_bar"
       android:elevation="10dp"
       android:id="@+id/fragment_payment_global_progress_bar"
       android:layout_width="match_parent"

@@ -44,6 +44,7 @@ import rx.android.schedulers.AndroidSchedulers;
 
 public class PaymentFragment extends PermissionServiceFragment implements PaymentView {
 
+  private static final String CHECKED_SERVICE_ID = "CHECKED_SERVICE_ID";
   private View progressView;
   private RadioGroup serviceRadioGroup;
   private ImageView productIcon;
@@ -66,6 +67,7 @@ public class PaymentFragment extends PermissionServiceFragment implements Paymen
   private BillingAnalytics billingAnalytics;
   private BillingNavigator billingNavigator;
   private BillingIdManager billingIdManager;
+  private int checkedServiceId;
 
   public static Fragment create(Bundle bundle) {
     final PaymentFragment fragment = new PaymentFragment();
@@ -128,6 +130,12 @@ public class PaymentFragment extends PermissionServiceFragment implements Paymen
     };
     registerClickHandler(handler);
 
+    if (savedInstanceState != null) {
+      checkedServiceId = savedInstanceState.getInt(CHECKED_SERVICE_ID);
+    } else {
+      checkedServiceId = -1;
+    }
+
     attachPresenter(new PaymentPresenter(this, billing, billingNavigator, billingAnalytics,
         getArguments().getString(BillingActivity.EXTRA_MERCHANT_NAME),
         getArguments().getString(BillingActivity.EXTRA_SKU),
@@ -141,6 +149,13 @@ public class PaymentFragment extends PermissionServiceFragment implements Paymen
       return true;
     }
     return super.onOptionsItemSelected(item);
+  }
+
+  @Override public void onSaveInstanceState(Bundle outState) {
+    if (serviceRadioGroup != null) {
+      outState.putInt(CHECKED_SERVICE_ID, serviceRadioGroup.getCheckedRadioButtonId());
+    }
+    super.onSaveInstanceState(outState);
   }
 
   @Override public void onDestroyView() {
@@ -188,7 +203,6 @@ public class PaymentFragment extends PermissionServiceFragment implements Paymen
 
   @Override public void showPayments(List<PaymentService> services) {
     serviceRadioGroup.removeAllViews();
-    buyButton.setVisibility(View.VISIBLE);
 
     RadioButton radioButton;
     CharSequence radioText;
@@ -212,9 +226,14 @@ public class PaymentFragment extends PermissionServiceFragment implements Paymen
       }
 
       radioButton.setText(radioText);
+
       radioButton.setChecked(service.isDefaultService());
 
       serviceRadioGroup.addView(radioButton);
+    }
+
+    if (checkedServiceId != -1) {
+      serviceRadioGroup.check(checkedServiceId);
     }
   }
 

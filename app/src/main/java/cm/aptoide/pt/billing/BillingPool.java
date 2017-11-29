@@ -30,7 +30,6 @@ import cm.aptoide.pt.billing.networking.TransactionServiceV3;
 import cm.aptoide.pt.billing.networking.TransactionServiceV7;
 import cm.aptoide.pt.billing.payment.Adyen;
 import cm.aptoide.pt.billing.payment.PaymentService;
-import cm.aptoide.pt.billing.payment.SharedPreferencesDefaultPaymentServicePersistence;
 import cm.aptoide.pt.billing.persistence.InMemoryTransactionPersistence;
 import cm.aptoide.pt.billing.persistence.RealmAuthorizationMapper;
 import cm.aptoide.pt.billing.persistence.RealmAuthorizationPersistence;
@@ -98,7 +97,6 @@ public class BillingPool {
   private BillingService billingServiceV3;
   private BillingIdManager billingIdManagerV3;
 
-  private DefaultPaymentServicePersistence serviceSelector;
   private AuthorizationPersistence authorizationPersistence;
   private TransactionPersistence transactionPersistence;
   private CustomerPersistence customerPersistence;
@@ -159,11 +157,11 @@ public class BillingPool {
   private Billing create(String merchantName) {
     if (merchantName.equals(BuildConfig.APPLICATION_ID)) {
       return new Billing(merchantName, getBillingServiceV3(), getPaidAppTransactionRepository(),
-          getPaidAppAuthorizationRepository(), getServiceSelector(), getCustomerPersistence(),
+          getPaidAppAuthorizationRepository(), getCustomerPersistence(),
           getPurchaseTokenDecoder(), getBillingSyncSchedulerV3(), getMerchantVersionProvider());
     } else {
       return new Billing(merchantName, getBillingServiceV7(), getInAppTransactionRepository(),
-          getInAppAuthorizationRepository(), getServiceSelector(), getCustomerPersistence(),
+          getInAppAuthorizationRepository(), getCustomerPersistence(),
           getPurchaseTokenDecoder(), getBillingSyncSchedulerV7(), getMerchantVersionProvider());
     }
   }
@@ -241,14 +239,6 @@ public class BillingPool {
       purchaseTokenDecoder = new Base64PurchaseTokenDecoder();
     }
     return purchaseTokenDecoder;
-  }
-
-  private DefaultPaymentServicePersistence getServiceSelector() {
-    if (serviceSelector == null) {
-      serviceSelector =
-          new SharedPreferencesDefaultPaymentServicePersistence(sharedPreferences, Schedulers.io());
-    }
-    return serviceSelector;
   }
 
   private BillingSyncScheduler getBillingSyncSchedulerV7() {
