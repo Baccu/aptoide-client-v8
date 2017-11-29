@@ -86,7 +86,7 @@ public class BillingServiceV7 implements BillingService {
         .flatMap(response -> {
           if (response != null && response.isOk()) {
             return Single.just(new Merchant(response.getData()
-                .getId(), response.getData()
+                .getId(), "Trivial Drive", response.getData()
                 .getName(), versionCode));
           } else {
             return Single.error(new MerchantNotFoundException(V7.getErrorMessage(response)));

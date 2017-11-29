@@ -29,7 +29,7 @@ public class BillingAnalytics {
             .getPrice()
             .getCurrency(), payment.getMerchant()
             .getVersionCode(), payment.getMerchant()
-            .getName(), payment.getSelectedPaymentService()
+            .getPackageName(), payment.getSelectedPaymentService()
             .getType())));
   }
 
@@ -40,7 +40,7 @@ public class BillingAnalytics {
         .getPrice()
         .getCurrency(), payment.getMerchant()
         .getVersionCode(), payment.getMerchant()
-        .getName(), payment.getSelectedPaymentService()
+        .getPackageName(), payment.getSelectedPaymentService()
         .getType());
     analytics.sendEvent(getFacebookPaymentEvent("Payment_Pop_Up", "Buy", bundle));
   }

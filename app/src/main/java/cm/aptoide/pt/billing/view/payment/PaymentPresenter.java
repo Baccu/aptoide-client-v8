@@ -87,7 +87,8 @@ public class PaymentPresenter implements Presenter {
               analytics.sendPaymentErrorEvent();
             }
 
-            view.showMerchant(merchantName);
+            view.showMerchant(payment.getMerchant()
+                .getName());
             view.showProduct(payment.getProduct());
             view.showPayments(payment.getPaymentServices());
           }
