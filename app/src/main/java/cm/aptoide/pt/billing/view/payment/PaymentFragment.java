@@ -40,6 +40,7 @@ import com.jakewharton.rxrelay.PublishRelay;
 import java.util.HashSet;
 import java.util.List;
 import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
 
 public class PaymentFragment extends PermissionServiceFragment implements PaymentView {
 
@@ -130,7 +131,8 @@ public class PaymentFragment extends PermissionServiceFragment implements Paymen
     attachPresenter(new PaymentPresenter(this, billing, billingNavigator, billingAnalytics,
         getArguments().getString(BillingActivity.EXTRA_MERCHANT_NAME),
         getArguments().getString(BillingActivity.EXTRA_SKU),
-        getArguments().getString(BillingActivity.EXTRA_DEVELOPER_PAYLOAD), new HashSet<>()));
+        getArguments().getString(BillingActivity.EXTRA_DEVELOPER_PAYLOAD), new HashSet<>(),
+        AndroidSchedulers.mainThread()));
   }
 
   @Override public boolean onOptionsItemSelected(MenuItem item) {

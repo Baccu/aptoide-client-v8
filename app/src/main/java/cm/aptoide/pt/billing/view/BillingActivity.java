@@ -50,7 +50,7 @@ public class BillingActivity extends BackButtonActivity {
 
     if (savedInstanceState == null) {
       getFragmentNavigator().navigateToWithoutBackSave(
-          PaymentLoginFragment.create(getIntent().getExtras()), true);
+          PaymentFragment.create(getIntent().getExtras()), true);
     }
 
     billing = ((AptoideApplication) getApplication()).getBilling(

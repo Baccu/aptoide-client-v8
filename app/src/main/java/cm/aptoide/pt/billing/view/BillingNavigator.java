@@ -48,7 +48,7 @@ public class BillingNavigator {
 
   public void navigateToCustomerAuthenticationView(String merchantName, String sku,
       String payload) {
-    fragmentNavigator.navigateTo(
+    fragmentNavigator.navigateToWithoutBackSave(
         PaymentLoginFragment.create(getBillingBundle(merchantName, sku, payload)), true);
   }
 

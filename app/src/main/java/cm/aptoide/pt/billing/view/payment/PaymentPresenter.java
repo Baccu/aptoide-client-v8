@@ -15,7 +15,7 @@ import cm.aptoide.pt.presenter.View;
 import java.io.IOException;
 import java.util.Set;
 import rx.Completable;
-import rx.android.schedulers.AndroidSchedulers;
+import rx.Scheduler;
 
 public class PaymentPresenter implements Presenter {
 
@@ -27,10 +27,11 @@ public class PaymentPresenter implements Presenter {
   private final String merchantName;
   private final String sku;
   private final String payload;
+  private final Scheduler viewScheduler;
 
   public PaymentPresenter(PaymentView view, Billing billing, BillingNavigator navigator,
       BillingAnalytics analytics, String merchantName, String sku, String payload,
-      Set<String> purchaseErrorShown) {
+      Set<String> purchaseErrorShown, Scheduler viewScheduler) {
     this.view = view;
     this.billing = billing;
     this.navigator = navigator;
@@ -39,6 +40,7 @@ public class PaymentPresenter implements Presenter {
     this.sku = sku;
     this.payload = payload;
     this.purchaseErrorShown = purchaseErrorShown;
+    this.viewScheduler = viewScheduler;
   }
 
   @Override public void present() {
@@ -56,7 +58,7 @@ public class PaymentPresenter implements Presenter {
         .doOnNext(__ -> view.showPaymentLoading())
         .flatMap(loading -> billing.getPayment(sku)
             .compose(view.bindUntilEvent(View.LifecycleEvent.PAUSE)))
-        .observeOn(AndroidSchedulers.mainThread())
+        .observeOn(viewScheduler)
         .compose(view.bindUntilEvent(View.LifecycleEvent.DESTROY))
         .subscribe(payment -> {
           if (!payment.getCustomer()
@@ -99,7 +101,7 @@ public class PaymentPresenter implements Presenter {
             .flatMap(___ -> billing.getPayment(sku)
                 .first())
             .compose(view.bindUntilEvent(View.LifecycleEvent.PAUSE)))
-        .observeOn(AndroidSchedulers.mainThread())
+        .observeOn(viewScheduler)
         .compose(view.bindUntilEvent(View.LifecycleEvent.DESTROY))
         .subscribe(payment -> {
           analytics.sendPaymentViewCancelEvent(payment);
@@ -116,14 +118,14 @@ public class PaymentPresenter implements Presenter {
                 .first()
                 .doOnNext(payment -> analytics.sendPaymentViewBuyEvent(payment))
                 .flatMapCompletable(payment -> billing.processPayment(serviceId, sku, payload)
-                .observeOn(AndroidSchedulers.mainThread())
+                    .observeOn(viewScheduler)
                 .doOnCompleted(() -> {
                   analytics.sendAuthorizationSuccessEvent(payment);
                   view.hideBuyLoading();
                 })
                     .onErrorResumeNext(
                         throwable -> navigateToAuthorizationView(payment, throwable))))
-            .observeOn(AndroidSchedulers.mainThread())
+            .observeOn(viewScheduler)
             .doOnError(throwable -> {
               view.hideBuyLoading();
               showError(throwable);
