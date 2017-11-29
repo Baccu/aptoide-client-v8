@@ -557,8 +557,7 @@ public abstract class AptoideApplication extends Application {
   public BillingAnalytics getBillingAnalytics() {
     if (billingAnalytics == null) {
       billingAnalytics =
-          new BillingAnalytics(Analytics.getInstance(), AppEventsLogger.newLogger(this),
-              getAptoidePackage());
+          new BillingAnalytics(Analytics.getInstance(), AppEventsLogger.newLogger(this));
     }
     return billingAnalytics;
   }
@@ -574,11 +573,11 @@ public abstract class AptoideApplication extends Application {
               getAccountManager(), getDatabase(), getResources(), getPackageRepository(),
               getTokenInvalidator(),
               new RxSyncScheduler(new HashMap<>(), CrashReport.getInstance()),
-              getInAppBillingSerializer(), getBodyInterceptorPoolV7(),
-              getAccountSettingsBodyInterceptorPoolV7(), new HashMap<>(),
-              WebService.getDefaultConverter(), CrashReport.getInstance(), getAdyen(),
-              getPurchaseFactory(), Build.VERSION_CODES.JELLY_BEAN, Build.VERSION_CODES.JELLY_BEAN,
-              getAuthenticationPersistence(), getPreferences());
+              getInAppBillingSerializer(),
+              getBodyInterceptorPoolV7(), getAccountSettingsBodyInterceptorPoolV7(),
+              new HashMap<>(), WebService.getDefaultConverter(), CrashReport.getInstance(),
+              getAdyen(), getPurchaseFactory(), Build.VERSION_CODES.JELLY_BEAN,
+              Build.VERSION_CODES.JELLY_BEAN, getAuthenticationPersistence());
     }
     return billingPool;
   }

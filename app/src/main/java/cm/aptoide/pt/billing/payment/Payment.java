@@ -14,17 +14,15 @@ public class Payment {
   private final Merchant merchant;
   private final Customer customer;
   private final Product product;
-  private final PaymentService selectedPaymentService;
   private final Transaction transaction;
   private final Purchase purchase;
   private final List<PaymentService> paymentServices;
 
-  public Payment(Merchant merchant, Customer customer, Product product, PaymentService selectedPaymentService, Transaction transaction,
+  public Payment(Merchant merchant, Customer customer, Product product, Transaction transaction,
       Purchase purchase, List<PaymentService> paymentServices) {
     this.merchant = merchant;
     this.customer = customer;
     this.product = product;
-    this.selectedPaymentService = selectedPaymentService;
     this.transaction = transaction;
     this.purchase = purchase;
     this.paymentServices = paymentServices;
@@ -43,7 +41,12 @@ public class Payment {
   }
 
   public PaymentService getSelectedPaymentService() {
-    return selectedPaymentService;
+    for (PaymentService service: paymentServices) {
+      if (service.isDefaultService()) {
+        return service;
+      }
+    }
+    throw new IllegalStateException("No service selected.");
   }
 
   public Purchase getPurchase() {

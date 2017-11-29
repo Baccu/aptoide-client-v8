@@ -55,7 +55,7 @@ public class PaymentServiceMapper {
         if (currentAPILevel >= minimumAPILevelPayPal) {
           return new PaymentService(billingIdManager.generateServiceId(response.getId()),
               response.getName(), response.getLabel(), response.getDescription(),
-              response.getIcon());
+              response.getIcon(), true);
         }
         throw new IllegalArgumentException(
             "PayPal not supported in Android API lower than " + minimumAPILevelPayPal);
@@ -63,7 +63,7 @@ public class PaymentServiceMapper {
         if (currentAPILevel >= minimumAPILevelAdyen) {
           return new AdyenPaymentService(billingIdManager.generateServiceId(response.getId()),
               response.getName(), response.getLabel(), response.getDescription(),
-              response.getIcon(), adyen);
+              response.getIcon(), adyen, false);
         }
         throw new IllegalArgumentException(
             "Adyen not supported in Android API lower than " + minimumAPILevelAdyen);

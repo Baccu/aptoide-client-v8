@@ -45,8 +45,6 @@ public class PaymentPresenter implements Presenter {
 
     onViewCreatedShowPayment();
 
-    handleSelectServiceEvent();
-
     handleCancelEvent();
 
     handleBuyEvent();
@@ -66,9 +64,6 @@ public class PaymentPresenter implements Presenter {
             navigator.navigateToCustomerAuthenticationView(merchantName, sku, payload);
           } else {
             if (payment.isNew() || payment.isPendingAuthorization()) {
-              view.showMerchant(merchantName);
-              view.showProduct(payment.getProduct());
-              view.showPayments(payment.getPaymentServices(), payment.getSelectedPaymentService());
               view.hidePaymentLoading();
             }
 
@@ -89,6 +84,10 @@ public class PaymentPresenter implements Presenter {
               view.showUnknownError();
               analytics.sendPaymentErrorEvent();
             }
+
+            view.showMerchant(merchantName);
+            view.showProduct(payment.getProduct());
+            view.showPayments(payment.getPaymentServices());
           }
         }, throwable -> navigator.popViewWithResult(throwable));
   }
@@ -108,39 +107,27 @@ public class PaymentPresenter implements Presenter {
         }, throwable -> navigator.popViewWithResult());
   }
 
-  private void handleSelectServiceEvent() {
-    view.getLifecycle()
-        .filter(event -> View.LifecycleEvent.RESUME.equals(event))
-        .flatMap(created -> view.selectServiceEvent()
-            .flatMapCompletable(serviceId -> billing.selectService(serviceId))
-            .compose(view.bindUntilEvent(View.LifecycleEvent.PAUSE)))
-        .observeOn(AndroidSchedulers.mainThread())
-        .compose(view.bindUntilEvent(View.LifecycleEvent.DESTROY))
-        .subscribe(__ -> {
-        }, throwable -> navigator.popViewWithResult(throwable));
-  }
-
   private void handleBuyEvent() {
     view.getLifecycle()
-        .filter(event -> View.LifecycleEvent.RESUME.equals(event))
+        .filter(event -> View.LifecycleEvent.CREATE.equals(event))
         .flatMap(__ -> view.buyEvent()
             .doOnNext(___ -> view.showBuyLoading())
-            .flatMap(___ -> billing.getPayment(sku)
-                .first())
-            .doOnNext(payment -> analytics.sendPaymentViewBuyEvent(payment))
-            .flatMapCompletable(payment -> billing.processPayment(sku, payload)
+            .flatMap(serviceId -> billing.getPayment(sku)
+                .first()
+                .doOnNext(payment -> analytics.sendPaymentViewBuyEvent(payment))
+                .flatMapCompletable(payment -> billing.processPayment(serviceId, sku, payload)
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnCompleted(() -> {
                   analytics.sendAuthorizationSuccessEvent(payment);
                   view.hideBuyLoading();
                 })
-                .onErrorResumeNext(throwable -> navigateToAuthorizationView(payment, throwable)))
+                    .onErrorResumeNext(
+                        throwable -> navigateToAuthorizationView(payment, throwable))))
             .observeOn(AndroidSchedulers.mainThread())
             .doOnError(throwable -> {
               view.hideBuyLoading();
               showError(throwable);
             })
-            .compose(view.bindUntilEvent(View.LifecycleEvent.PAUSE))
             .retry())
         .compose(view.bindUntilEvent(View.LifecycleEvent.DESTROY))
         .subscribe(__ -> {

@@ -7,7 +7,6 @@ package cm.aptoide.pt.billing.networking;
 
 import cm.aptoide.pt.billing.BillingIdManager;
 import cm.aptoide.pt.billing.Price;
-import cm.aptoide.pt.billing.product.InAppProduct;
 import cm.aptoide.pt.billing.product.Product;
 import cm.aptoide.pt.dataprovider.ws.v7.billing.GetProductsRequest;
 import java.util.ArrayList;
@@ -21,26 +20,28 @@ public class ProductMapperV7 {
     this.billingIdManager = billingIdManager;
   }
 
-  public List<Product> map(String packageName,
-      List<GetProductsRequest.ResponseBody.Product> responseList, int packageVersionCode) {
+  public List<Product> map(List<GetProductsRequest.ResponseBody.Product> responseList) {
 
     final List<Product> products = new ArrayList<>(responseList.size());
 
     for (GetProductsRequest.ResponseBody.Product response : responseList) {
 
-      products.add(map(packageName, packageVersionCode, response));
+      products.add(map(response));
     }
 
     return products;
   }
 
-  public Product map(String packageName, int packageVersionCode,
-      GetProductsRequest.ResponseBody.Product response) {
-    return new InAppProduct(billingIdManager.generateProductId(response.getId()), response.getSku(),
-        response.getIcon(), response.getTitle(), response.getDescription(), packageName, new Price(
-        response.getPrice()
-            .getAmount(), response.getPrice()
+  public Product map(GetProductsRequest.ResponseBody.Product response) {
+    String id = billingIdManager.generateProductId(response.getId());
+    String sku = response.getSku();
+    String icon = response.getIcon();
+    String title = response.getTitle();
+    String description = response.getDescription();
+    Price price = new Price(response.getPrice()
+        .getAmount(), response.getPrice()
         .getCurrency(), response.getPrice()
-        .getSign()), packageVersionCode);
+        .getSign());
+    return new Product(id, icon, title, description, price, sku);
   }
 }

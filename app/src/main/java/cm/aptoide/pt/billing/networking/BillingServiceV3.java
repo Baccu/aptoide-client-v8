@@ -66,7 +66,7 @@ public class BillingServiceV3 implements BillingService {
     return Single.just(Collections.emptyList());
   }
 
-  @Override public Single<Merchant> getMerchant(String merchantName) {
+  @Override public Single<Merchant> getMerchant(String merchantName, int versionCode) {
     return Single.error(new IllegalStateException("Not implemented!"));
   }
 

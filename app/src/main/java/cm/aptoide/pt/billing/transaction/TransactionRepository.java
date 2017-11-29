@@ -36,8 +36,8 @@ public class TransactionRepository {
   }
 
   public Observable<Transaction> getTransaction(String customerId, String productId) {
-    return transactionPersistence.getTransaction(customerId, productId)
-        .doOnSubscribe(() -> syncScheduler.syncTransaction(productId));
+    return Completable.fromAction(() -> syncScheduler.syncTransaction(productId))
+        .andThen(transactionPersistence.getTransaction(customerId, productId));
   }
 
   public Single<List<Transaction>> getOtherTransactions(String customerId, String productId,

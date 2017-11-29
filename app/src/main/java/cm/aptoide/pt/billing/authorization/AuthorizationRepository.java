@@ -22,8 +22,8 @@ public class AuthorizationRepository {
   }
 
   public Observable<Authorization> getAuthorization(String customerId, String transactionId) {
-    return authorizationPersistence.getAuthorization(customerId, transactionId)
-        .doOnSubscribe(() -> syncScheduler.syncAuthorization(transactionId));
+    return Completable.fromAction(() -> syncScheduler.syncAuthorization(transactionId))
+        .andThen(authorizationPersistence.getAuthorization(customerId, transactionId));
   }
 
   public Completable updateAuthorization(String customerId, String authorizationId, String metadata,
@@ -39,7 +39,7 @@ public class AuthorizationRepository {
   }
 
   public Completable removeAuthorization(String customerId, String transactionId) {
-    return authorizationPersistence.removeAuthorizations(customerId, transactionId)
-        .doOnSubscribe(__ -> syncScheduler.cancelAuthorizationSync(transactionId));
+    return Completable.fromAction(() -> syncScheduler.cancelAuthorizationSync(transactionId))
+        .andThen(authorizationPersistence.removeAuthorizations(customerId, transactionId));
   }
 }

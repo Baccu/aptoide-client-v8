@@ -36,12 +36,10 @@ import com.bumptech.glide.load.resource.drawable.GlideDrawable;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.jakewharton.rxbinding.view.RxView;
-import com.jakewharton.rxbinding.widget.RxRadioGroup;
 import com.jakewharton.rxrelay.PublishRelay;
 import java.util.HashSet;
 import java.util.List;
 import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
 
 public class PaymentFragment extends PermissionServiceFragment implements PaymentView {
 
@@ -167,20 +165,13 @@ public class PaymentFragment extends PermissionServiceFragment implements Paymen
         .getSimpleName());
   }
 
-  @Override public Observable<String> selectServiceEvent() {
-    return RxRadioGroup.checkedChanges(serviceRadioGroup)
-        .filter(serviceId -> serviceId != -1)
-        .map(serviceId -> billingIdManager.generateServiceId(serviceId));
-  }
-
   @Override public Observable<Void> cancelEvent() {
     return cancelRelay;
   }
 
-  @Override public Observable<Void> buyEvent() {
+  @Override public Observable<String> buyEvent() {
     return RxView.clicks(buyButton)
-        .subscribeOn(AndroidSchedulers.mainThread())
-        .unsubscribeOn(AndroidSchedulers.mainThread());
+        .map(__ -> billingIdManager.generateServiceId(serviceRadioGroup.getCheckedRadioButtonId()));
   }
 
   @Override public void showPaymentLoading() {
@@ -193,8 +184,7 @@ public class PaymentFragment extends PermissionServiceFragment implements Paymen
     progressView.setVisibility(View.VISIBLE);
   }
 
-  @Override
-  public void showPayments(List<PaymentService> services, PaymentService selectedService) {
+  @Override public void showPayments(List<PaymentService> services) {
     serviceRadioGroup.removeAllViews();
     buyButton.setVisibility(View.VISIBLE);
 
@@ -220,9 +210,7 @@ public class PaymentFragment extends PermissionServiceFragment implements Paymen
       }
 
       radioButton.setText(radioText);
-
-      radioButton.setChecked(selectedService.getId()
-          .equals(service.getId()));
+      radioButton.setChecked(service.isDefaultService());
 
       serviceRadioGroup.addView(radioButton);
     }

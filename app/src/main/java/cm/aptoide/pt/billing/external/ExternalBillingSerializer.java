@@ -5,7 +5,6 @@
 
 package cm.aptoide.pt.billing.external;
 
-import cm.aptoide.pt.billing.product.InAppProduct;
 import cm.aptoide.pt.billing.product.Product;
 import cm.aptoide.pt.dataprovider.ws.v7.billing.PurchaseResponse;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -22,7 +21,7 @@ public class ExternalBillingSerializer {
     final List<String> serializedProducts = new ArrayList<>();
     for (Product product : products) {
       serializedProducts.add(new ObjectMapper().writeValueAsString(
-          new SKU(((InAppProduct) product).getSku(), "inapp", getPrice(product), product.getPrice()
+          new SKU(((Product) product).getSku(), "inapp", getPrice(product), product.getPrice()
               .getCurrency(), (long) (product.getPrice()
               .getAmount() * 1000000), product.getTitle(), product.getDescription())));
     }

@@ -12,13 +12,15 @@ public class PaymentService {
   private final String name;
   private final String description;
   private final String icon;
+  private final boolean defaultService;
 
-  public PaymentService(String id, String type, String name, String description, String icon) {
+  public PaymentService(String id, String type, String name, String description, String icon,  boolean defaultService) {
     this.id = id;
     this.type = type;
     this.name = name;
     this.description = description;
     this.icon = icon;
+    this.defaultService = defaultService;
   }
 
   public String getId() {
@@ -39,5 +41,9 @@ public class PaymentService {
 
   public String getIcon() {
     return icon;
+  }
+
+  public boolean isDefaultService() {
+    return defaultService;
   }
 }

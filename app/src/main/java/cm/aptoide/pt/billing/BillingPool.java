@@ -30,7 +30,7 @@ import cm.aptoide.pt.billing.networking.TransactionServiceV3;
 import cm.aptoide.pt.billing.networking.TransactionServiceV7;
 import cm.aptoide.pt.billing.payment.Adyen;
 import cm.aptoide.pt.billing.payment.PaymentService;
-import cm.aptoide.pt.billing.payment.SharedPreferencesPaymentServiceSelector;
+import cm.aptoide.pt.billing.payment.SharedPreferencesDefaultPaymentServicePersistence;
 import cm.aptoide.pt.billing.persistence.InMemoryTransactionPersistence;
 import cm.aptoide.pt.billing.persistence.RealmAuthorizationMapper;
 import cm.aptoide.pt.billing.persistence.RealmAuthorizationPersistence;
@@ -51,7 +51,6 @@ import cm.aptoide.pt.dataprovider.ws.BodyInterceptor;
 import cm.aptoide.pt.dataprovider.ws.v3.BaseBody;
 import cm.aptoide.pt.install.PackageRepository;
 import cm.aptoide.pt.networking.AuthenticationPersistence;
-import cm.aptoide.pt.preferences.Preferences;
 import cm.aptoide.pt.sync.SyncScheduler;
 import com.jakewharton.rxrelay.PublishRelay;
 import java.util.HashMap;
@@ -84,7 +83,6 @@ public class BillingPool {
   private final int minimumAPILevelPayPal;
   private final int minimumAPILevelAdyen;
   private final AuthenticationPersistence authenticationPersistence;
-  private final Preferences preferences;
 
   private BillingSyncScheduler billingSyncSchedulerV7;
   private AuthorizationRepository inAppAuthorizationRepository;
@@ -100,7 +98,7 @@ public class BillingPool {
   private BillingService billingServiceV3;
   private BillingIdManager billingIdManagerV3;
 
-  private PaymentServiceSelector serviceSelector;
+  private DefaultPaymentServicePersistence serviceSelector;
   private AuthorizationPersistence authorizationPersistence;
   private TransactionPersistence transactionPersistence;
   private CustomerPersistence customerPersistence;
@@ -109,6 +107,7 @@ public class BillingPool {
   private PurchaseTokenDecoder purchaseTokenDecoder;
   private TransactionMapperV3 transactionMapperV3;
   private LocalIdGenerator localIdGenerator;
+  private MerchantVersionProvider merchantVersionCodeProvider;
 
   public BillingPool(SharedPreferences sharedPreferences,
       BodyInterceptor<BaseBody> bodyInterceptorV3, OkHttpClient httpClient,
@@ -119,8 +118,7 @@ public class BillingPool {
       BodyInterceptor<cm.aptoide.pt.dataprovider.ws.v7.BaseBody> accountSettingsBodyInterceptorPoolV7,
       HashMap<String, Billing> poll, Converter.Factory converterFactory, CrashReport crashLogger,
       Adyen adyen, PurchaseFactory purchaseFactory, int minimumAPILevelPayPal,
-      int minimumAPILevelAdyen, AuthenticationPersistence authenticationPersistence,
-      Preferences preferences) {
+      int minimumAPILevelAdyen, AuthenticationPersistence authenticationPersistence) {
     this.sharedPreferences = sharedPreferences;
     this.pool = poll;
     this.bodyInterceptorV3 = bodyInterceptorV3;
@@ -141,7 +139,6 @@ public class BillingPool {
     this.minimumAPILevelPayPal = minimumAPILevelPayPal;
     this.minimumAPILevelAdyen = minimumAPILevelAdyen;
     this.authenticationPersistence = authenticationPersistence;
-    this.preferences = preferences;
   }
 
   public Billing get(String merchantName) {
@@ -163,12 +160,19 @@ public class BillingPool {
     if (merchantName.equals(BuildConfig.APPLICATION_ID)) {
       return new Billing(merchantName, getBillingServiceV3(), getPaidAppTransactionRepository(),
           getPaidAppAuthorizationRepository(), getServiceSelector(), getCustomerPersistence(),
-          getPurchaseTokenDecoder(), getBillingSyncSchedulerV3());
+          getPurchaseTokenDecoder(), getBillingSyncSchedulerV3(), getMerchantVersionProvider());
     } else {
       return new Billing(merchantName, getBillingServiceV7(), getInAppTransactionRepository(),
           getInAppAuthorizationRepository(), getServiceSelector(), getCustomerPersistence(),
-          getPurchaseTokenDecoder(), getBillingSyncSchedulerV7());
+          getPurchaseTokenDecoder(), getBillingSyncSchedulerV7(), getMerchantVersionProvider());
     }
+  }
+
+  private MerchantVersionProvider getMerchantVersionProvider() {
+    if (merchantVersionCodeProvider == null) {
+      merchantVersionCodeProvider = new MerchantPackageRepositoryVersionProvider(packageRepository);
+    }
+    return merchantVersionCodeProvider;
   }
 
   private TransactionRepository getPaidAppTransactionRepository() {
@@ -195,7 +199,7 @@ public class BillingPool {
               sharedPreferences, new PurchaseMapperV3(purchaseFactory),
               new ProductMapperV3(getBillingIdManagerV3()), resources,
               new PaymentService(getBillingIdManagerV3().generateServiceId(1),
-                  PaymentServiceMapper.PAYPAL, "PayPal", null, ""), getBillingIdManagerV3(),
+                  PaymentServiceMapper.PAYPAL, "PayPal", null, "", true), getBillingIdManagerV3(),
               Build.VERSION.SDK_INT, minimumAPILevelPayPal);
     }
     return billingServiceV3;
@@ -207,7 +211,7 @@ public class BillingPool {
           new BillingServiceV7(accountSettingsBodyInterceptorPoolV7, httpClient, converterFactory,
               tokenInvalidator, sharedPreferences,
               new PurchaseMapperV7(externalBillingSerializer, getBillingIdManagerV7(),
-                  purchaseFactory), new ProductMapperV7(getBillingIdManagerV7()), packageRepository,
+                  purchaseFactory), new ProductMapperV7(getBillingIdManagerV7()),
               new PaymentServiceMapper(crashLogger, getBillingIdManagerV7(), adyen,
                   Build.VERSION.SDK_INT, minimumAPILevelAdyen, minimumAPILevelPayPal),
               getBillingIdManagerV7(), purchaseFactory);
@@ -239,11 +243,10 @@ public class BillingPool {
     return purchaseTokenDecoder;
   }
 
-  private PaymentServiceSelector getServiceSelector() {
+  private DefaultPaymentServicePersistence getServiceSelector() {
     if (serviceSelector == null) {
       serviceSelector =
-          new SharedPreferencesPaymentServiceSelector(BuildConfig.DEFAULT_PAYMENT_SERVICE_TYPE,
-              preferences);
+          new SharedPreferencesDefaultPaymentServicePersistence(sharedPreferences, Schedulers.io());
     }
     return serviceSelector;
   }

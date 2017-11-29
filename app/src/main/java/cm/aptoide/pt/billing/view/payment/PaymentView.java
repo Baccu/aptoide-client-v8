@@ -13,17 +13,15 @@ import rx.Observable;
 
 public interface PaymentView extends View {
 
-  Observable<String> selectServiceEvent();
-
   Observable<Void> cancelEvent();
 
-  Observable<Void> buyEvent();
+  Observable<String> buyEvent();
 
   void showPaymentLoading();
 
   void showBuyLoading();
 
-  void showPayments(List<PaymentService> paymentList, PaymentService selectedService);
+  void showPayments(List<PaymentService> paymentList);
 
   void showProduct(Product product);
 

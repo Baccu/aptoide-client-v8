@@ -4,10 +4,12 @@ public class Merchant {
 
   private final long id;
   private final String name;
+  private final int versionCode;
 
-  public Merchant(long id, String name) {
+  public Merchant(long id, String name, int versionCode) {
     this.id = id;
     this.name = name;
+    this.versionCode = versionCode;
   }
 
   public long getId() {
@@ -16,5 +18,9 @@ public class Merchant {
 
   public String getName() {
     return name;
+  }
+
+  public int getVersionCode() {
+    return versionCode;
   }
 }

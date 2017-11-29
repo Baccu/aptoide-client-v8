@@ -18,6 +18,7 @@ import cm.aptoide.pt.billing.purchase.Purchase;
 import cm.aptoide.pt.billing.transaction.AuthorizedTransaction;
 import cm.aptoide.pt.billing.transaction.Transaction;
 import cm.aptoide.pt.billing.transaction.TransactionRepository;
+import java.util.ArrayList;
 import java.util.List;
 import rx.Completable;
 import rx.Observable;
@@ -28,28 +29,32 @@ public class Billing {
   private final TransactionRepository transactionRepository;
   private final BillingService billingService;
   private final AuthorizationRepository authorizationRepository;
-  private final PaymentServiceSelector paymentServiceSelector;
+  private final DefaultPaymentServicePersistence defaultPaymentServicePersistence;
   private final CustomerPersistence customerPersistence;
   private final PurchaseTokenDecoder tokenDecoder;
   private final String merchantName;
   private final BillingSyncScheduler syncScheduler;
+  private final MerchantVersionProvider versionProvider;
 
   public Billing(String merchantName, BillingService billingService,
       TransactionRepository transactionRepository, AuthorizationRepository authorizationRepository,
-      PaymentServiceSelector paymentServiceSelector, CustomerPersistence customerPersistence,
-      PurchaseTokenDecoder tokenDecoder, BillingSyncScheduler syncScheduler) {
+      DefaultPaymentServicePersistence defaultPaymentServicePersistence,
+      CustomerPersistence customerPersistence, PurchaseTokenDecoder tokenDecoder,
+      BillingSyncScheduler syncScheduler, MerchantVersionProvider versionProvider) {
     this.transactionRepository = transactionRepository;
     this.billingService = billingService;
     this.authorizationRepository = authorizationRepository;
-    this.paymentServiceSelector = paymentServiceSelector;
+    this.defaultPaymentServicePersistence = defaultPaymentServicePersistence;
     this.customerPersistence = customerPersistence;
     this.tokenDecoder = tokenDecoder;
     this.merchantName = merchantName;
     this.syncScheduler = syncScheduler;
+    this.versionProvider = versionProvider;
   }
 
   public Single<Merchant> getMerchant() {
-    return billingService.getMerchant(merchantName);
+    return versionProvider.getVersionCode(merchantName)
+        .flatMap(versionCode -> billingService.getMerchant(merchantName, versionCode));
   }
 
   public Observable<Payment> getPayment(String sku) {
@@ -59,12 +64,11 @@ public class Billing {
             return getPaymentServices().flatMapObservable(
                 services -> getProduct(sku).flatMapObservable(
                     product -> getAuthorizedTransaction(customer, product).switchMap(
-            authorizedTransaction -> Observable.combineLatest(getSelectedService(),
-                getPurchase(product),
-                (paymentService, purchase) -> new Payment(merchant, customer, product,
-                    paymentService, authorizedTransaction, purchase, services)))));
+                        authorizedTransaction -> getPurchase(product).map(
+                            purchase -> new Payment(merchant, customer, product,
+                                authorizedTransaction, purchase, services)))));
           }
-          return Observable.just(new Payment(merchant, customer, null, null, null, null, null));
+          return Observable.just(new Payment(merchant, customer, null, null, null, null));
         }));
   }
 
@@ -80,8 +84,9 @@ public class Billing {
     return billingService.deletePurchase(tokenDecoder.decode(purchaseToken));
   }
 
-  public Completable processPayment(String sku, String payload) {
-    return getPayment(sku).first()
+  public Completable processPayment(String serviceId, String sku, String payload) {
+    return defaultPaymentServicePersistence.saveDefaultService(serviceId)
+        .andThen(getPayment(sku).first()
         .toSingle()
         .flatMap(payment -> {
           if (payment.getSelectedPaymentService() instanceof AdyenPaymentService) {
@@ -108,7 +113,7 @@ public class Billing {
               }
 
               return Completable.complete();
-            })));
+            }))));
   }
 
   public Completable authorize(String sku, String metadata) {
@@ -119,12 +124,6 @@ public class Billing {
                 .getId(), payment.getAuthorization()
                 .getId(),
                 metadata, Authorization.Status.PENDING_SYNC));
-  }
-
-  public Completable selectService(String serviceId) {
-    return getService(serviceId).flatMapCompletable(
-        service -> paymentServiceSelector.selectService(service))
-        .onErrorComplete();
   }
 
   public void stopSync() {
@@ -157,23 +156,21 @@ public class Billing {
             authorization -> new AuthorizedTransaction(transaction, authorization)));
   }
 
-  private Observable<PaymentService> getSelectedService() {
-    return getPaymentServices().flatMapObservable(
-        services -> paymentServiceSelector.getSelectedService(services));
-  }
-
-  private Single<PaymentService> getService(String serviceId) {
-    return getPaymentServices().flatMapObservable(payments -> Observable.from(payments)
-        .filter(payment -> payment.getId()
-            .equals(serviceId))
-        .switchIfEmpty(
-            Observable.error(new IllegalArgumentException("Payment " + serviceId + " not found."))))
-        .first()
-        .toSingle();
-  }
-
   private Single<List<PaymentService>> getPaymentServices() {
-    return billingService.getPaymentServices();
+    return defaultPaymentServicePersistence.getDefaultService()
+        .flatMapObservable(defaultServiceId -> billingService.getPaymentServices()
+            .flatMapObservable(services -> Observable.from(services))
+            .scan(((List<PaymentService>) new ArrayList<PaymentService>()), (list, service) -> {
+
+              list.add(new PaymentService(service.getId(), service.getType(), service.getName(),
+                  service.getDescription(), service.getIcon(), service.getId()
+                  .equals(defaultServiceId)));
+
+              return list;
+            }))
+        .last()
+        .toSingle()
+        .onErrorResumeNext(billingService.getPaymentServices());
   }
 
   private Completable removeOldTransactions(Transaction transaction) {

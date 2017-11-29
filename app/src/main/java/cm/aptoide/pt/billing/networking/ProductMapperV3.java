@@ -41,11 +41,9 @@ public class ProductMapperV3 {
       final String description = response.getApp()
           .getDescription();
       final Price price = new Price(payment.getAmount(), currency, payment.getSymbol());
-      final int packageVersionCode = response.getPath()
-          .getVersionCode();
 
       return new Product(billingIdManager.generateProductId(response.getPath()
-          .getAppId()), icon, title, description, price, packageVersionCode);
+          .getAppId()), icon, title, description, price, "");
     }
 
     throw new IllegalArgumentException(V3.getErrorMessage(response));

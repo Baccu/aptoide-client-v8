@@ -14,16 +14,15 @@ public class Product {
   private final String title;
   private final String description;
   private final Price price;
-  private final int packageVersionCode;
+  private final String sku;
 
-  public Product(String id, String icon, String title, String description, Price price,
-      int packageVersionCode) {
+  public Product(String id, String icon, String title, String description, Price price, String sku) {
     this.id = id;
     this.icon = icon;
     this.title = title;
     this.description = description;
     this.price = price;
-    this.packageVersionCode = packageVersionCode;
+    this.sku = sku;
   }
 
   public String getId() {
@@ -46,7 +45,7 @@ public class Product {
     return description;
   }
 
-  public int getPackageVersionCode() {
-    return packageVersionCode;
+  public String getSku() {
+    return sku;
   }
 }

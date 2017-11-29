@@ -26,7 +26,6 @@ import cm.aptoide.pt.dataprovider.ws.v7.billing.GetProductsRequest;
 import cm.aptoide.pt.dataprovider.ws.v7.billing.GetPurchaseRequest;
 import cm.aptoide.pt.dataprovider.ws.v7.billing.GetPurchasesRequest;
 import cm.aptoide.pt.dataprovider.ws.v7.billing.GetServicesRequest;
-import cm.aptoide.pt.install.PackageRepository;
 import java.util.Collections;
 import java.util.List;
 import okhttp3.OkHttpClient;
@@ -42,7 +41,6 @@ public class BillingServiceV7 implements BillingService {
   private final SharedPreferences sharedPreferences;
   private final PurchaseMapperV7 purchaseMapper;
   private final ProductMapperV7 productMapperV7;
-  private final PackageRepository packageRepository;
   private final PaymentServiceMapper serviceMapper;
   private final BodyInterceptor<BaseBody> bodyInterceptorV7;
   private final BillingIdManager billingIdManager;
@@ -51,8 +49,8 @@ public class BillingServiceV7 implements BillingService {
   public BillingServiceV7(BodyInterceptor<BaseBody> bodyInterceptorV7, OkHttpClient httpClient,
       Converter.Factory converterFactory, TokenInvalidator tokenInvalidator,
       SharedPreferences sharedPreferences, PurchaseMapperV7 purchaseMapper,
-      ProductMapperV7 productMapperV7, PackageRepository packageRepository,
-      PaymentServiceMapper serviceMapper, BillingIdManager billingIdManager,
+      ProductMapperV7 productMapperV7, PaymentServiceMapper serviceMapper,
+      BillingIdManager billingIdManager,
       PurchaseFactory purchaseFactory) {
     this.httpClient = httpClient;
     this.converterFactory = converterFactory;
@@ -60,7 +58,6 @@ public class BillingServiceV7 implements BillingService {
     this.sharedPreferences = sharedPreferences;
     this.purchaseMapper = purchaseMapper;
     this.productMapperV7 = productMapperV7;
-    this.packageRepository = packageRepository;
     this.serviceMapper = serviceMapper;
     this.bodyInterceptorV7 = bodyInterceptorV7;
     this.billingIdManager = billingIdManager;
@@ -81,7 +78,7 @@ public class BillingServiceV7 implements BillingService {
         });
   }
 
-  @Override public Single<Merchant> getMerchant(String merchantName) {
+  @Override public Single<Merchant> getMerchant(String merchantName, int versionCode) {
     return GetMerchantRequest.of(merchantName, bodyInterceptorV7, httpClient, converterFactory,
         tokenInvalidator, sharedPreferences)
         .observe(false)
@@ -90,7 +87,7 @@ public class BillingServiceV7 implements BillingService {
           if (response != null && response.isOk()) {
             return Single.just(new Merchant(response.getData()
                 .getId(), response.getData()
-                .getName()));
+                .getName(), versionCode));
           } else {
             return Single.error(new MerchantNotFoundException(V7.getErrorMessage(response)));
           }
@@ -160,7 +157,7 @@ public class BillingServiceV7 implements BillingService {
         .toSingle()
         .flatMap(response -> {
           if (response != null && response.isOk()) {
-            return mapToProducts(merchantName, response.getList());
+            return Single.just(productMapperV7.map(response.getList()));
           } else {
             return Single.<List<Product>>error(
                 new IllegalStateException(V7.getErrorMessage(response)));
@@ -176,26 +173,10 @@ public class BillingServiceV7 implements BillingService {
         .toSingle()
         .flatMap(response -> {
           if (response != null && response.isOk()) {
-            return mapToProduct(merchantName, response.getData());
+            return Single.just(productMapperV7.map(response.getData()));
           } else {
             return Single.error(new ProductNotFoundException("No product found for sku: " + sku));
           }
         });
-  }
-
-  private Single<List<Product>> mapToProducts(String merchantName,
-      List<GetProductsRequest.ResponseBody.Product> responseList) {
-    return Single.zip(packageRepository.getPackageVersionCode(merchantName),
-        packageRepository.getPackageLabel(merchantName),
-        (packageVersionCode, applicationName) -> productMapperV7.map(merchantName, responseList,
-            packageVersionCode));
-  }
-
-  private Single<Product> mapToProduct(String merchantName,
-      GetProductsRequest.ResponseBody.Product response) {
-    return Single.zip(packageRepository.getPackageVersionCode(merchantName),
-        packageRepository.getPackageLabel(merchantName),
-        (packageVersionCode, applicationName) -> productMapperV7.map(merchantName,
-            packageVersionCode, response));
   }
 }
