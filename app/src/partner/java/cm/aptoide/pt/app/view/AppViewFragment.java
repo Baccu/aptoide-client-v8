@@ -53,7 +53,7 @@ import cm.aptoide.pt.app.view.displayable.AppViewScreenshotsDisplayable;
 import cm.aptoide.pt.app.view.displayable.AppViewSuggestedAppsDisplayable;
 import cm.aptoide.pt.billing.BillingAnalytics;
 import cm.aptoide.pt.billing.exception.BillingException;
-import cm.aptoide.pt.billing.purchase.PaidAppPurchase;
+import cm.aptoide.pt.billing.purchase.Purchase;
 import cm.aptoide.pt.billing.view.BillingActivity;
 import cm.aptoide.pt.billing.view.PurchaseBundleMapper;
 import cm.aptoide.pt.crashreports.CrashReport;
@@ -578,13 +578,12 @@ public class AppViewFragment extends AptoideBaseFragment<BaseAdapter>
     if (requestCode == PAY_APP_REQUEST_CODE) {
       try {
         final Bundle data = (intent != null) ? intent.getExtras() : null;
-        final PaidAppPurchase purchase =
-            (PaidAppPurchase) purchaseBundleMapper.map(resultCode, data);
+        final Purchase purchase = purchaseBundleMapper.map(resultCode, data);
 
         FragmentActivity fragmentActivity = getActivity();
         Intent installApp = new Intent(AppBoughtReceiver.APP_BOUGHT);
         installApp.putExtra(AppBoughtReceiver.APP_ID, getAppId());
-        installApp.putExtra(AppBoughtReceiver.APP_PATH, purchase.getApkPath());
+        installApp.putExtra(AppBoughtReceiver.APP_PATH, purchase.getSignatureData());
         fragmentActivity.sendBroadcast(installApp);
       } catch (Throwable throwable) {
         if (throwable instanceof BillingException) {

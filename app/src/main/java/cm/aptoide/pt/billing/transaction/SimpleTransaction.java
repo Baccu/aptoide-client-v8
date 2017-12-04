@@ -6,16 +6,23 @@ public class SimpleTransaction implements Transaction {
   private final String customerId;
   private final String productId;
   private final Status status;
+  private final String serviceId;
 
-  public SimpleTransaction(String id, Status status, String customerId, String productId) {
+  public SimpleTransaction(String id, Status status, String customerId, String productId,
+      String serviceId) {
     this.status = status;
     this.id = id;
     this.customerId = customerId;
     this.productId = productId;
+    this.serviceId = serviceId;
   }
 
   @Override public String getCustomerId() {
     return customerId;
+  }
+
+  @Override public String getServiceId() {
+    return serviceId;
   }
 
   @Override public String getProductId() {

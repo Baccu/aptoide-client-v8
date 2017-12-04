@@ -19,6 +19,7 @@ public class InAppBillingService extends Service {
     return new ExternalBillingBinder(this,
         ((AptoideApplication) getApplicationContext()).getInAppBillingSerializer(),
         ((AptoideApplication) getApplicationContext()).getPaymentThrowableCodeMapper(),
+        ((AptoideApplication) getApplicationContext()).getPurchaseBundleMapper(),
         CrashReport.getInstance(), BuildConfig.IN_BILLING_SUPPORTED_API_VERSION,
         ((AptoideApplication) getApplicationContext()).getBillingAnalytics(), getPackageManager());
   }

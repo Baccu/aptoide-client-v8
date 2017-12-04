@@ -37,7 +37,6 @@ import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.jakewharton.rxbinding.view.RxView;
 import com.jakewharton.rxrelay.PublishRelay;
-import java.util.HashSet;
 import java.util.List;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
@@ -139,7 +138,7 @@ public class PaymentFragment extends PermissionServiceFragment implements Paymen
     attachPresenter(new PaymentPresenter(this, billing, billingNavigator, billingAnalytics,
         getArguments().getString(BillingActivity.EXTRA_MERCHANT_NAME),
         getArguments().getString(BillingActivity.EXTRA_SKU),
-        getArguments().getString(BillingActivity.EXTRA_DEVELOPER_PAYLOAD), new HashSet<>(),
+        getArguments().getString(BillingActivity.EXTRA_DEVELOPER_PAYLOAD),
         AndroidSchedulers.mainThread()));
   }
 
@@ -182,8 +181,9 @@ public class PaymentFragment extends PermissionServiceFragment implements Paymen
         .getSimpleName());
   }
 
-  @Override public Observable<Void> cancelEvent() {
-    return cancelRelay;
+  @Override public Observable<String> cancelEvent() {
+    return cancelRelay.map(
+        __ -> billingIdManager.generateServiceId(serviceRadioGroup.getCheckedRadioButtonId()));
   }
 
   @Override public Observable<String> buyEvent() {

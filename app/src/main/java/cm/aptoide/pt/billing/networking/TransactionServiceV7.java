@@ -74,12 +74,12 @@ public class TransactionServiceV7 implements TransactionService {
           if (response.code() == 404) {
             return Single.just(
                 transactionFactory.create(billingIdManager.generateTransactionId(), customerId,
-                    productId, Transaction.Status.NEW));
+                    productId, Transaction.Status.NEW, null));
           }
 
           return Single.just(
               transactionFactory.create(billingIdManager.generateTransactionId(), customerId,
-                  productId, Transaction.Status.FAILED));
+                  productId, Transaction.Status.FAILED, null));
         });
   }
 
@@ -96,7 +96,7 @@ public class TransactionServiceV7 implements TransactionService {
           }
           return Single.just(
               transactionFactory.create(billingIdManager.generateTransactionId(), customerId,
-                  productId, Transaction.Status.FAILED));
+                  productId, Transaction.Status.FAILED, null));
         });
   }
 
@@ -113,7 +113,7 @@ public class TransactionServiceV7 implements TransactionService {
           }
           return Single.just(
               transactionFactory.create(billingIdManager.generateTransactionId(), customerId,
-                  productId, Transaction.Status.FAILED));
+                  productId, Transaction.Status.FAILED, null));
         });
   }
 }

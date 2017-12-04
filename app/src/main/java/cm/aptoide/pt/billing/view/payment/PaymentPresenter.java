@@ -8,18 +8,16 @@ package cm.aptoide.pt.billing.view.payment;
 import cm.aptoide.pt.billing.Billing;
 import cm.aptoide.pt.billing.BillingAnalytics;
 import cm.aptoide.pt.billing.exception.ServiceNotAuthorizedException;
-import cm.aptoide.pt.billing.payment.Payment;
+import cm.aptoide.pt.billing.payment.PaymentService;
 import cm.aptoide.pt.billing.view.BillingNavigator;
 import cm.aptoide.pt.presenter.Presenter;
 import cm.aptoide.pt.presenter.View;
 import java.io.IOException;
-import java.util.Set;
 import rx.Completable;
 import rx.Scheduler;
 
 public class PaymentPresenter implements Presenter {
 
-  private final Set<String> purchaseErrorShown;
   private final PaymentView view;
   private final Billing billing;
   private final BillingNavigator navigator;
@@ -31,7 +29,7 @@ public class PaymentPresenter implements Presenter {
 
   public PaymentPresenter(PaymentView view, Billing billing, BillingNavigator navigator,
       BillingAnalytics analytics, String merchantName, String sku, String payload,
-      Set<String> purchaseErrorShown, Scheduler viewScheduler) {
+      Scheduler viewScheduler) {
     this.view = view;
     this.billing = billing;
     this.navigator = navigator;
@@ -39,7 +37,6 @@ public class PaymentPresenter implements Presenter {
     this.merchantName = merchantName;
     this.sku = sku;
     this.payload = payload;
-    this.purchaseErrorShown = purchaseErrorShown;
     this.viewScheduler = viewScheduler;
   }
 
@@ -78,10 +75,7 @@ public class PaymentPresenter implements Presenter {
               navigator.popViewWithResult(payment.getPurchase());
             }
 
-            if (payment.isFailed() && !purchaseErrorShown.contains(payment.getTransaction()
-                .getId())) {
-              purchaseErrorShown.add(payment.getTransaction()
-                  .getId());
+            if (payment.isFailed()) {
               view.hidePaymentLoading();
               view.showUnknownError();
               analytics.sendPaymentErrorEvent();
@@ -99,13 +93,13 @@ public class PaymentPresenter implements Presenter {
     view.getLifecycle()
         .filter(event -> View.LifecycleEvent.RESUME.equals(event))
         .flatMap(__ -> view.cancelEvent()
-            .flatMap(___ -> billing.getPayment(sku)
-                .first())
+            .flatMap(serviceId -> billing.getPayment(sku)
+                .first()
+                .doOnNext(payment -> analytics.sendPaymentViewCancelEvent(payment)))
             .compose(view.bindUntilEvent(View.LifecycleEvent.PAUSE)))
         .observeOn(viewScheduler)
         .compose(view.bindUntilEvent(View.LifecycleEvent.DESTROY))
-        .subscribe(payment -> {
-          analytics.sendPaymentViewCancelEvent(payment);
+        .subscribe(__ -> {
           navigator.popViewWithResult();
         }, throwable -> navigator.popViewWithResult());
   }
@@ -121,11 +115,10 @@ public class PaymentPresenter implements Presenter {
                 .flatMapCompletable(payment -> billing.processPayment(serviceId, sku, payload)
                     .observeOn(viewScheduler)
                 .doOnCompleted(() -> {
-                  analytics.sendAuthorizationSuccessEvent(payment);
                   view.hideBuyLoading();
                 })
-                    .onErrorResumeNext(
-                        throwable -> navigateToAuthorizationView(payment, throwable))))
+                    .onErrorResumeNext(throwable -> navigateToAuthorizationView(
+                        payment.getPaymentService(serviceId), throwable))))
             .observeOn(viewScheduler)
             .doOnError(throwable -> {
               view.hideBuyLoading();
@@ -137,10 +130,10 @@ public class PaymentPresenter implements Presenter {
         }, throwable -> navigator.popViewWithResult(throwable));
   }
 
-  private Completable navigateToAuthorizationView(Payment payment, Throwable throwable) {
+  private Completable navigateToAuthorizationView(PaymentService selectedService,
+      Throwable throwable) {
     if (throwable instanceof ServiceNotAuthorizedException) {
-      navigator.navigateToTransactionAuthorizationView(merchantName,
-          payment.getSelectedPaymentService(), sku);
+      navigator.navigateToTransactionAuthorizationView(merchantName, selectedService, sku);
       return Completable.complete();
     }
     return Completable.error(throwable);

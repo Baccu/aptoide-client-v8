@@ -54,18 +54,19 @@ public class Billing {
   }
 
   public Observable<Payment> getPayment(String sku) {
-    return getMerchant().flatMapObservable(merchant -> customerPersistence.getCustomer()
-        .switchMap(customer -> {
-          if (customer.isAuthenticated()) {
-            return getPaymentServices().flatMapObservable(
-                services -> getProduct(sku).flatMapObservable(
-                    product -> getAuthorizedTransaction(customer, product).switchMap(
-                        authorizedTransaction -> getPurchase(product).map(
-                            purchase -> new Payment(merchant, customer, product,
-                                authorizedTransaction, purchase, services)))));
-          }
-          return Observable.just(new Payment(merchant, customer, null, null, null, null));
-        }));
+    return getMerchant().flatMapObservable(merchant -> billingService.getPaymentServices()
+        .flatMapObservable(services -> billingService.getProduct(sku, merchantName)
+            .flatMapObservable(product -> customerPersistence.getCustomer()
+                .switchMap(customer -> {
+                  if (customer.isAuthenticated()) {
+                    return getAuthorizedTransaction(customer, product).flatMapSingle(
+                        authorizedTransaction -> billingService.getPurchase(product.getId())
+                            .map(purchase -> new Payment(merchant, customer, product,
+                                authorizedTransaction, purchase, services)));
+                  }
+                  return Observable.just(
+                      new Payment(merchant, customer, product, null, null, services));
+                }))));
   }
 
   public Single<List<Product>> getProducts(List<String> skus) {
@@ -81,61 +82,63 @@ public class Billing {
   }
 
   public Completable processPayment(String serviceId, String sku, String payload) {
-    return getPayment(sku).first()
-        .flatMap(payment -> Observable.from(payment.getPaymentServices())
-            .filter(service -> service.getId()
-                .equals(serviceId))
-            .switchIfEmpty(Observable.error(new IllegalStateException("Invalid payment service.")))
-            .flatMapSingle(selectedService -> {
+    return getMerchant().flatMapCompletable(merchant -> billingService.getPaymentServices()
+        .flatMapCompletable(services -> billingService.getProduct(sku, merchantName)
+            .flatMapCompletable(product -> customerPersistence.getCustomer()
+                .first()
+                .toSingle()
+                .flatMapCompletable(
+                    customer -> getPaymentService(services, serviceId).flatMap(selectedService -> {
 
-              if (selectedService instanceof AdyenPaymentService) {
-                return ((AdyenPaymentService) selectedService).getToken()
-                .flatMap(token -> transactionRepository.createTransaction(payment.getCustomer()
-                    .getId(), payment.getProduct()
-                    .getId(), selectedService
-                    .getId(), payload, token));
-              }
-              return transactionRepository.createTransaction(payment.getCustomer()
-                  .getId(), payment.getProduct()
-                  .getId(), selectedService.getId(), payload);
-            }))
-        .toSingle()
-        .flatMapCompletable(
-            transaction -> removeOldTransactions(transaction).andThen(Completable.defer(() -> {
-              if (transaction.isPendingAuthorization()) {
-                return Completable.error(
-                    new ServiceNotAuthorizedException("Pending service authorization."));
-              }
+                      if (selectedService instanceof AdyenPaymentService) {
+                        return ((AdyenPaymentService) selectedService).getToken()
+                            .flatMap(
+                                token -> transactionRepository.createTransaction(customer.getId(),
+                                    product.getId(), selectedService.getId(), payload, token));
+                      }
+                      return transactionRepository.createTransaction(customer.getId(),
+                          product.getId(), selectedService.getId(), payload);
+                    })
+                        .flatMapCompletable(
+                            transaction -> removeOldTransactions(transaction).andThen(
+                                Completable.defer(() -> {
+                                  if (transaction.isPendingAuthorization()) {
+                                    return Completable.error(new ServiceNotAuthorizedException(
+                                        "Pending service authorization."));
+                                  }
 
-              if (transaction.isFailed()) {
-                return Completable.error(new PaymentFailureException("Payment failed."));
-              }
+                                  if (transaction.isFailed()) {
+                                    return Completable.error(
+                                        new PaymentFailureException("Payment failed."));
+                                  }
 
-              return Completable.complete();
-            })));
+                                  return Completable.complete();
+                                })))))));
+  }
+
+  private Single<PaymentService> getPaymentService(List<PaymentService> services,
+      String serviceId) {
+    return Observable.from(services)
+        .first(service -> service.getId()
+            .equals(serviceId))
+        .toSingle();
   }
 
   public Completable authorize(String sku, String metadata) {
-    return getPayment(sku).first()
+    return customerPersistence.getCustomer()
+        .first()
         .toSingle()
-        .flatMapCompletable(payment -> authorizationRepository.updateAuthorization(
-            payment.getCustomer()
-                .getId(), payment.getAuthorization()
-                .getId(),
-                metadata, Authorization.Status.PENDING_SYNC));
+        .flatMapCompletable(customer -> billingService.getProduct(sku, merchantName)
+            .flatMapCompletable(product -> getAuthorizedTransaction(customer, product).first()
+                .toSingle()
+                .flatMapCompletable(
+                    transaction -> authorizationRepository.updateAuthorization(customer.getId(),
+                        transaction.getAuthorization()
+                .getId(), metadata, Authorization.Status.PENDING_SYNC))));
   }
 
   public void stopSync() {
     syncScheduler.stopSyncs();
-  }
-
-  private Observable<Purchase> getPurchase(Product product) {
-    return billingService.getPurchase(product.getId())
-        .toObservable();
-  }
-
-  private Single<Product> getProduct(String sku) {
-    return billingService.getProduct(sku, merchantName);
   }
 
   private Observable<Authorization> getAuthorization(Customer customer, Transaction transaction) {
@@ -153,10 +156,6 @@ public class Billing {
     return transactionRepository.getTransaction(customer.getId(), product.getId())
         .switchMap(transaction -> getAuthorization(customer, transaction).map(
             authorization -> new AuthorizedTransaction(transaction, authorization)));
-  }
-
-  private Single<List<PaymentService>> getPaymentServices() {
-    return billingService.getPaymentServices();
   }
 
   private Completable removeOldTransactions(Transaction transaction) {

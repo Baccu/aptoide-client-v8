@@ -1,9 +1,12 @@
 package cm.aptoide.pt.billing.transaction;
 
 public interface Transaction {
+
   String getCustomerId();
 
   String getProductId();
+
+  String getServiceId();
 
   String getId();
 

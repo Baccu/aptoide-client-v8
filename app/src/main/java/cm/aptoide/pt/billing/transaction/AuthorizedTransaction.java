@@ -20,6 +20,10 @@ public class AuthorizedTransaction implements Transaction {
     return transaction.getCustomerId();
   }
 
+  @Override public String getServiceId() {
+    return transaction.getServiceId();
+  }
+
   @Override public String getProductId() {
     return transaction.getProductId();
   }

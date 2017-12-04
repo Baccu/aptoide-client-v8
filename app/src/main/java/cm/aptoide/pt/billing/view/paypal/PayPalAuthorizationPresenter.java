@@ -99,7 +99,7 @@ public class PayPalAuthorizationPresenter implements Presenter {
     view.getLifecycle()
         .first(event -> event.equals(View.LifecycleEvent.CREATE))
         .flatMap(created -> billing.getPayment(sku))
-        .first(authorization -> authorization.isProcessing())
+        .first(payment -> payment.isProcessing())
         .observeOn(viewScheduler)
         .doOnNext(__ -> view.showLoading())
         .compose(view.bindUntilEvent(View.LifecycleEvent.DESTROY))

@@ -25,6 +25,8 @@ public class TransactionMapperV7 {
     return transactionFactory.create(billingIdManager.generateTransactionId(response.getId()),
         String.valueOf(response.getUser()
             .getId()), billingIdManager.generateProductId(response.getProduct()
-            .getId()), Transaction.Status.valueOf(response.getStatus()));
+            .getId()), Transaction.Status.valueOf(response.getStatus()),
+        billingIdManager.generateServiceId(response.getService()
+            .getId()));
   }
 }

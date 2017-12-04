@@ -14,9 +14,10 @@ public class Payment {
   private final Merchant merchant;
   private final Customer customer;
   private final Product product;
+  private final List<PaymentService> paymentServices;
+
   private final Transaction transaction;
   private final Purchase purchase;
-  private final List<PaymentService> paymentServices;
 
   public Payment(Merchant merchant, Customer customer, Product product, Transaction transaction,
       Purchase purchase, List<PaymentService> paymentServices) {
@@ -40,21 +41,26 @@ public class Payment {
     return product;
   }
 
-  public PaymentService getSelectedPaymentService() {
+  public PaymentService getPaymentService(String serviceId) {
     for (PaymentService service: paymentServices) {
-      if (service.isDefaultService()) {
+      if (service.getId()
+          .equals(serviceId)) {
         return service;
       }
     }
-    throw new IllegalStateException("No service selected.");
+    throw new IllegalArgumentException("No service for id: " + serviceId);
+  }
+
+  public PaymentService getPaymentService() {
+    if (transaction != null) {
+      return getPaymentService(transaction.getServiceId());
+    }
+    throw new IllegalStateException(
+        "No transaction for payment yet. Can not return payment service.");
   }
 
   public Purchase getPurchase() {
     return purchase;
-  }
-
-  public Transaction getTransaction() {
-    return transaction;
   }
 
   public List<PaymentService> getPaymentServices() {

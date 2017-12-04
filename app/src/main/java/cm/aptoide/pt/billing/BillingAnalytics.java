@@ -29,8 +29,7 @@ public class BillingAnalytics {
             .getPrice()
             .getCurrency(), payment.getMerchant()
             .getVersionCode(), payment.getMerchant()
-            .getPackageName(), payment.getSelectedPaymentService()
-            .getType())));
+            .getPackageName())));
   }
 
   public void sendPaymentViewBuyEvent(Payment payment) {
@@ -40,8 +39,7 @@ public class BillingAnalytics {
         .getPrice()
         .getCurrency(), payment.getMerchant()
         .getVersionCode(), payment.getMerchant()
-        .getPackageName(), payment.getSelectedPaymentService()
-        .getType());
+        .getPackageName());
     analytics.sendEvent(getFacebookPaymentEvent("Payment_Pop_Up", "Buy", bundle));
   }
 
@@ -65,7 +63,7 @@ public class BillingAnalytics {
 
   public void sendAuthorizationSuccessEvent(Payment payment) {
     final Bundle bundle = new Bundle();
-    bundle.putString("payment_method", payment.getSelectedPaymentService()
+    bundle.putString("payment_method", payment.getPaymentService()
         .getType());
     analytics.sendEvent(getFacebookPaymentEvent("Payment_Authorization_Page", "Success", bundle));
   }
@@ -88,13 +86,12 @@ public class BillingAnalytics {
   }
 
   private Bundle getProductBundle(double productAmount, String productCurrency,
-      int merchantVersionCode, String merchantPackageName, String selectedServiceName) {
+      int merchantVersionCode, String merchantPackageName) {
     final Bundle bundle = new Bundle();
     bundle.putDouble("purchase_value", productAmount);
     bundle.putString("purchase_currency", productCurrency);
     bundle.putString("package_name_seller", merchantPackageName);
     bundle.putInt("package_version_code_seller", merchantVersionCode);
-    bundle.putString("payment_method", selectedServiceName);
     return bundle;
   }
 }

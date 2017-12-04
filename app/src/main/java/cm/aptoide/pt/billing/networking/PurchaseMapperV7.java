@@ -45,7 +45,7 @@ public class PurchaseMapperV7 {
               .getDeveloperPurchase()
               .getPurchaseState() == 0 ? Purchase.Status.COMPLETED : Purchase.Status.NEW,
           response.getProduct()
-              .getSku(), PurchaseFactory.IN_APP, null, null);
+              .getSku());
     } catch (JsonProcessingException e) {
       throw new IllegalArgumentException(e);
     }

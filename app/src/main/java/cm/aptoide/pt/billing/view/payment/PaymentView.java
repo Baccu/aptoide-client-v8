@@ -13,7 +13,7 @@ import rx.Observable;
 
 public interface PaymentView extends View {
 
-  Observable<Void> cancelEvent();
+  Observable<String> cancelEvent();
 
   Observable<String> buyEvent();
 

@@ -64,12 +64,13 @@ public class TransactionServiceV3 implements TransactionService {
             }
             return Single.just(transactionFactory.create(billingIdManager.generateTransactionId(
                 billingIdManager.resolveProductId(productId)), customerId, productId,
-                Transaction.Status.COMPLETED));
+                Transaction.Status.COMPLETED, billingIdManager.generateServiceId(1)));
           }
 
           return Single.just(transactionFactory.create(
               billingIdManager.generateTransactionId(billingIdManager.resolveProductId(productId)),
-              customerId, productId, Transaction.Status.FAILED));
+              customerId, productId,
+              Transaction.Status.FAILED, null));
         });
   }
 
@@ -85,15 +86,16 @@ public class TransactionServiceV3 implements TransactionService {
             if (response.isPaid()) {
               return transactionFactory.create(billingIdManager.generateTransactionId(
                   billingIdManager.resolveProductId(productId)), customerId, productId,
-                  Transaction.Status.PENDING_SERVICE_AUTHORIZATION);
+                  Transaction.Status.PENDING_SERVICE_AUTHORIZATION, serviceId);
             }
             return transactionFactory.create(billingIdManager.generateTransactionId(
                 billingIdManager.resolveProductId(productId)), customerId, productId,
-                Transaction.Status.COMPLETED);
+                Transaction.Status.COMPLETED, serviceId);
           }
           return transactionFactory.create(
               billingIdManager.generateTransactionId(billingIdManager.resolveProductId(productId)),
-              customerId, productId, Transaction.Status.FAILED);
+              customerId, productId,
+              Transaction.Status.FAILED, null);
         });
   }
 

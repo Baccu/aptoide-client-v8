@@ -21,9 +21,10 @@ public class TransactionMapperV3 {
   public Transaction map(String customerId, String transactionId,
       TransactionResponse transactionResponse, String productId) {
 
+    final String serviceId = billingIdManager.generateServiceId(1);
     if (transactionResponse.hasErrors()) {
       return getErrorTransaction(transactionResponse.getErrors(), customerId, transactionId,
-          billingIdManager.generateServiceId(1), productId);
+          serviceId, productId);
     }
 
     final Transaction.Status status;
@@ -45,14 +46,14 @@ public class TransactionMapperV3 {
         status = Transaction.Status.FAILED;
     }
 
-    return transactionFactory.create(transactionId, customerId, productId, status);
+    return transactionFactory.create(transactionId, customerId, productId, status, serviceId);
   }
 
   private Transaction getErrorTransaction(List<ErrorResponse> errors, String customerId,
       String transactionId, String serviceId, String productId) {
 
-    Transaction transaction =
-        transactionFactory.create(transactionId, customerId, productId, Transaction.Status.FAILED);
+    Transaction transaction = transactionFactory.create(transactionId, customerId, productId,
+            Transaction.Status.FAILED, serviceId);
 
     if (errors == null || errors.isEmpty()) {
       return transaction;
@@ -64,17 +65,17 @@ public class TransactionMapperV3 {
         || "PRODUCT-209".equals(error.code)
         || "PRODUCT-214".equals(error.code)) {
       transaction = transactionFactory.create(transactionId, customerId, productId,
-          Transaction.Status.PENDING_SERVICE_AUTHORIZATION);
+          Transaction.Status.PENDING_SERVICE_AUTHORIZATION, serviceId);
     }
 
     if ("PRODUCT-200".equals(error.code)) {
       transaction = transactionFactory.create(transactionId, customerId, productId,
-          Transaction.Status.COMPLETED);
+          Transaction.Status.COMPLETED, serviceId);
     }
 
     if ("PRODUCT-216".equals(error.code) || "SYS-1".equals(error.code)) {
       transaction = transactionFactory.create(transactionId, customerId, productId,
-          Transaction.Status.PROCESSING);
+          Transaction.Status.PROCESSING, serviceId);
     }
 
     return transaction;

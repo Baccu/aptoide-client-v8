@@ -16,14 +16,14 @@ import cm.aptoide.pt.AptoideApplication;
 import cm.aptoide.pt.billing.Billing;
 import cm.aptoide.pt.billing.BillingAnalytics;
 import cm.aptoide.pt.billing.exception.MerchantNotFoundException;
-import cm.aptoide.pt.billing.purchase.InAppPurchase;
-import cm.aptoide.pt.billing.purchase.Purchase;
 import cm.aptoide.pt.billing.view.BillingActivity;
 import cm.aptoide.pt.billing.view.PaymentThrowableCodeMapper;
+import cm.aptoide.pt.billing.view.PurchaseBundleMapper;
 import cm.aptoide.pt.crashreports.CrashReport;
 import cm.aptoide.pt.iab.AptoideInAppBillingService;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import rx.Single;
 
@@ -43,11 +43,6 @@ public class ExternalBillingBinder extends AptoideInAppBillingService.Stub {
   public static final String DETAILS_LIST = "DETAILS_LIST";
   public static final String BUY_INTENT = "BUY_INTENT";
 
-  public static final String INAPP_PURCHASE_DATA = "INAPP_PURCHASE_DATA";
-  public static final String INAPP_DATA_SIGNATURE = "INAPP_DATA_SIGNATURE";
-  public static final String INAPP_PURCHASE_ITEM_LIST = "INAPP_PURCHASE_ITEM_LIST";
-  public static final String INAPP_PURCHASE_DATA_LIST = "INAPP_PURCHASE_DATA_LIST";
-  public static final String INAPP_DATA_SIGNATURE_LIST = "INAPP_DATA_SIGNATURE_LIST";
   public static final String INAPP_CONTINUATION_TOKEN = "INAPP_CONTINUATION_TOKEN";
 
   public static final String ITEM_ID_LIST = "ITEM_ID_LIST";
@@ -60,6 +55,7 @@ public class ExternalBillingBinder extends AptoideInAppBillingService.Stub {
   private final Context context;
   private final ExternalBillingSerializer serializer;
   private final PaymentThrowableCodeMapper errorCodeFactory;
+  private final PurchaseBundleMapper purchaseBundleMapper;
   private final PackageManager packageManager;
   private final CrashReport crashReport;
   private final int supportedApiVersion;
@@ -69,11 +65,13 @@ public class ExternalBillingBinder extends AptoideInAppBillingService.Stub {
   private String merchantName;
 
   public ExternalBillingBinder(Context context, ExternalBillingSerializer serializer,
-      PaymentThrowableCodeMapper errorCodeFactory, CrashReport crashReport, int apiVersion,
-      BillingAnalytics analytics, PackageManager packageManager) {
+      PaymentThrowableCodeMapper errorCodeFactory, PurchaseBundleMapper purchaseBundleMapper,
+      CrashReport crashReport, int apiVersion, BillingAnalytics analytics,
+      PackageManager packageManager) {
     this.context = context;
     this.serializer = serializer;
     this.errorCodeFactory = errorCodeFactory;
+    this.purchaseBundleMapper = purchaseBundleMapper;
     this.packageManager = packageManager;
     this.crashReport = crashReport;
     this.supportedApiVersion = apiVersion;
@@ -178,40 +176,26 @@ public class ExternalBillingBinder extends AptoideInAppBillingService.Stub {
   @Override public Bundle getPurchases(int apiVersion, String packageName, String type,
       String continuationToken) throws RemoteException {
 
-    final Bundle result = new Bundle();
-
     if (apiVersion != supportedApiVersion) {
+      final Bundle result = new Bundle();
       result.putInt(RESPONSE_CODE, RESULT_DEVELOPER_ERROR);
       return result;
     }
 
-    final List<String> dataList = new ArrayList<>();
-    final List<String> signatureList = new ArrayList<>();
-    final List<String> skuList = new ArrayList<>();
-
-    if (type.equals(ITEM_TYPE_INAPP)) {
-      try {
-        final List<Purchase> purchases = billing.getPurchases()
-            .toBlocking()
-            .value();
-
-        for (Purchase purchase : purchases) {
-          dataList.add(((InAppPurchase) purchase).getSignatureData());
-          signatureList.add(((InAppPurchase) purchase).getSignature());
-          skuList.add(((InAppPurchase) purchase).getSku());
-        }
-      } catch (Exception exception) {
-        crashReport.log(exception);
-        result.putInt(RESPONSE_CODE, errorCodeFactory.map(exception.getCause()));
-        return result;
-      }
+    if (!type.equals(ITEM_TYPE_INAPP)) {
+      return purchaseBundleMapper.map(Collections.emptyList());
     }
 
-    result.putStringArrayList(INAPP_PURCHASE_DATA_LIST, (ArrayList<String>) dataList);
-    result.putStringArrayList(INAPP_PURCHASE_ITEM_LIST, (ArrayList<String>) skuList);
-    result.putStringArrayList(INAPP_DATA_SIGNATURE_LIST, (ArrayList<String>) signatureList);
-    result.putInt(RESPONSE_CODE, RESULT_OK);
-    return result;
+    try {
+      return purchaseBundleMapper.map(billing.getPurchases()
+          .toBlocking()
+          .value());
+    } catch (Exception exception) {
+      final Bundle result = new Bundle();
+      crashReport.log(exception);
+      result.putInt(RESPONSE_CODE, errorCodeFactory.map(exception.getCause()));
+      return result;
+    }
   }
 
   @Override public int consumePurchase(int apiVersion, String packageName, String purchaseToken)
