@@ -43,7 +43,7 @@ public class PurchaseMapperV7 {
               .getId()), response.getSignature(), serializer.serializePurchase(response.getData()
               .getDeveloperPurchase()), response.getData()
               .getDeveloperPurchase()
-              .getPurchaseState() == 0 ? Purchase.Status.COMPLETED : Purchase.Status.NEW,
+              .getPurchaseState() == 0 ? Purchase.Status.COMPLETED : Purchase.Status.FAILED,
           response.getProduct()
               .getSku());
     } catch (JsonProcessingException e) {

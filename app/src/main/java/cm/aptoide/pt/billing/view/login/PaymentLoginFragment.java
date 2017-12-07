@@ -29,7 +29,6 @@ import cm.aptoide.pt.billing.view.BillingActivity;
 import cm.aptoide.pt.billing.view.BillingNavigator;
 import cm.aptoide.pt.crashreports.CrashReport;
 import cm.aptoide.pt.navigator.ActivityResultNavigator;
-import cm.aptoide.pt.navigator.FragmentNavigator;
 import cm.aptoide.pt.orientation.ScreenOrientationManager;
 import cm.aptoide.pt.view.rx.RxAlertDialog;
 import com.jakewharton.rxbinding.view.RxView;
@@ -248,7 +247,7 @@ public class PaymentLoginFragment extends GooglePlayServicesFragment implements 
             accountNavigator, Arrays.asList("email"), accountManager, crashReport, errorMapper,
             AndroidSchedulers.mainThread(), orientationManager, application.getAccountAnalytics(),
             application.getBillingAnalytics(), billingNavigator,
-            getArguments().getString(BillingActivity.EXTRA_MERCHANT_NAME),
+            getArguments().getString(BillingActivity.EXTRA_MERCHANT_PACKAGE_NAME),
             getArguments().getString(BillingActivity.EXTRA_SKU),
             getArguments().getString(BillingActivity.EXTRA_DEVELOPER_PAYLOAD)));
   }

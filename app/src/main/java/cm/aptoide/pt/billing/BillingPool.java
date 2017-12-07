@@ -82,6 +82,7 @@ public class BillingPool {
   private final int minimumAPILevelPayPal;
   private final int minimumAPILevelAdyen;
   private final AuthenticationPersistence authenticationPersistence;
+  private final String marketName;
 
   private BillingSyncScheduler billingSyncSchedulerV7;
   private AuthorizationRepository inAppAuthorizationRepository;
@@ -116,7 +117,8 @@ public class BillingPool {
       BodyInterceptor<cm.aptoide.pt.dataprovider.ws.v7.BaseBody> accountSettingsBodyInterceptorPoolV7,
       HashMap<String, Billing> poll, Converter.Factory converterFactory, CrashReport crashLogger,
       Adyen adyen, PurchaseFactory purchaseFactory, int minimumAPILevelPayPal,
-      int minimumAPILevelAdyen, AuthenticationPersistence authenticationPersistence) {
+      int minimumAPILevelAdyen, AuthenticationPersistence authenticationPersistence,
+      String marketName) {
     this.sharedPreferences = sharedPreferences;
     this.pool = poll;
     this.bodyInterceptorV3 = bodyInterceptorV3;
@@ -137,13 +139,14 @@ public class BillingPool {
     this.minimumAPILevelPayPal = minimumAPILevelPayPal;
     this.minimumAPILevelAdyen = minimumAPILevelAdyen;
     this.authenticationPersistence = authenticationPersistence;
+    this.marketName = marketName;
   }
 
-  public Billing get(String merchantName) {
-    if (!pool.containsKey(merchantName)) {
-      pool.put(merchantName, create(merchantName));
+  public Billing get(String merchantPackageName) {
+    if (!pool.containsKey(merchantPackageName)) {
+      pool.put(merchantPackageName, create(merchantPackageName));
     }
-    return pool.get(merchantName);
+    return pool.get(merchantPackageName);
   }
 
   public BillingIdManager getIdResolver(String merchantName) {
@@ -154,13 +157,13 @@ public class BillingPool {
     }
   }
 
-  private Billing create(String merchantName) {
-    if (merchantName.equals(BuildConfig.APPLICATION_ID)) {
-      return new Billing(merchantName, getBillingServiceV3(), getPaidAppTransactionRepository(),
+  private Billing create(String merchantPackageName) {
+    if (merchantPackageName.equals(BuildConfig.APPLICATION_ID)) {
+      return new Billing(merchantPackageName, getBillingServiceV3(), getPaidAppTransactionRepository(),
           getPaidAppAuthorizationRepository(), getCustomerPersistence(),
           getPurchaseTokenDecoder(), getBillingSyncSchedulerV3(), getMerchantVersionProvider());
     } else {
-      return new Billing(merchantName, getBillingServiceV7(), getInAppTransactionRepository(),
+      return new Billing(merchantPackageName, getBillingServiceV7(), getInAppTransactionRepository(),
           getInAppAuthorizationRepository(), getCustomerPersistence(),
           getPurchaseTokenDecoder(), getBillingSyncSchedulerV7(), getMerchantVersionProvider());
     }
@@ -198,7 +201,7 @@ public class BillingPool {
               new ProductMapperV3(getBillingIdManagerV3()), resources,
               new PaymentService(getBillingIdManagerV3().generateServiceId(1),
                   PaymentServiceMapper.PAYPAL, "PayPal", null, "", true), getBillingIdManagerV3(),
-              Build.VERSION.SDK_INT, minimumAPILevelPayPal);
+              Build.VERSION.SDK_INT, minimumAPILevelPayPal, marketName);
     }
     return billingServiceV3;
   }

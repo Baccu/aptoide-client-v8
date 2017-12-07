@@ -111,7 +111,7 @@ public class BillingNavigator {
   private Bundle getBillingBundle(String merchantName, String sku, String serviceName) {
     final Bundle bundle = new Bundle();
     bundle.putString(BillingActivity.EXTRA_SKU, sku);
-    bundle.putString(BillingActivity.EXTRA_MERCHANT_NAME, merchantName);
+    bundle.putString(BillingActivity.EXTRA_MERCHANT_PACKAGE_NAME, merchantName);
     bundle.putString(BillingActivity.EXTRA_SERVICE_NAME, serviceName);
     return bundle;
   }

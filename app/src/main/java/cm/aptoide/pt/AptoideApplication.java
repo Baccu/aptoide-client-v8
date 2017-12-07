@@ -562,8 +562,8 @@ public abstract class AptoideApplication extends Application {
     return billingAnalytics;
   }
 
-  public Billing getBilling(String merchantName) {
-    return getBillingPool().get(merchantName);
+  public Billing getBilling(String merchantPackageName) {
+    return getBillingPool().get(merchantPackageName);
   }
 
   public BillingPool getBillingPool() {
@@ -577,7 +577,7 @@ public abstract class AptoideApplication extends Application {
               getBodyInterceptorPoolV7(), getAccountSettingsBodyInterceptorPoolV7(),
               new HashMap<>(), WebService.getDefaultConverter(), CrashReport.getInstance(),
               getAdyen(), getPurchaseFactory(), Build.VERSION_CODES.JELLY_BEAN,
-              Build.VERSION_CODES.JELLY_BEAN, getAuthenticationPersistence());
+              Build.VERSION_CODES.JELLY_BEAN, getAuthenticationPersistence(), getMarketName());
     }
     return billingPool;
   }

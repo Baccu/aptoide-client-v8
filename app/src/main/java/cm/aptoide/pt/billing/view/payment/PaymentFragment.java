@@ -77,12 +77,12 @@ public class PaymentFragment extends PermissionServiceFragment implements Paymen
   @Override public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     billing = ((AptoideApplication) getContext().getApplicationContext()).getBilling(
-        getArguments().getString(BillingActivity.EXTRA_MERCHANT_NAME));
+        getArguments().getString(BillingActivity.EXTRA_MERCHANT_PACKAGE_NAME));
     billingAnalytics =
         ((AptoideApplication) getContext().getApplicationContext()).getBillingAnalytics();
     billingNavigator = ((ActivityResultNavigator) getContext()).getBillingNavigator();
     billingIdManager = ((AptoideApplication) getContext().getApplicationContext()).getIdResolver(
-        getArguments().getString(BillingActivity.EXTRA_MERCHANT_NAME));
+        getArguments().getString(BillingActivity.EXTRA_MERCHANT_PACKAGE_NAME));
     cancelRelay = PublishRelay.create();
   }
 
@@ -136,7 +136,7 @@ public class PaymentFragment extends PermissionServiceFragment implements Paymen
     }
 
     attachPresenter(new PaymentPresenter(this, billing, billingNavigator, billingAnalytics,
-        getArguments().getString(BillingActivity.EXTRA_MERCHANT_NAME),
+        getArguments().getString(BillingActivity.EXTRA_MERCHANT_PACKAGE_NAME),
         getArguments().getString(BillingActivity.EXTRA_SKU),
         getArguments().getString(BillingActivity.EXTRA_DEVELOPER_PAYLOAD),
         AndroidSchedulers.mainThread()));

@@ -39,12 +39,14 @@ public class BillingServiceV3 implements BillingService {
   private final BillingIdManager billingIdManager;
   private final int currentAPILevel;
   private final int serviceMinimumAPILevel;
+  private final String marketName;
 
   public BillingServiceV3(BodyInterceptor<BaseBody> bodyInterceptorV3, OkHttpClient httpClient,
       Converter.Factory converterFactory, TokenInvalidator tokenInvalidator,
       SharedPreferences sharedPreferences, PurchaseMapperV3 purchaseMapper,
       ProductMapperV3 productMapper, Resources resources, PaymentService paymentService,
-      BillingIdManager billingIdManager, int currentAPILevel, int serviceMinimumAPILevel) {
+      BillingIdManager billingIdManager, int currentAPILevel, int serviceMinimumAPILevel,
+      String marketName) {
     this.bodyInterceptorV3 = bodyInterceptorV3;
     this.httpClient = httpClient;
     this.converterFactory = converterFactory;
@@ -57,6 +59,7 @@ public class BillingServiceV3 implements BillingService {
     this.billingIdManager = billingIdManager;
     this.currentAPILevel = currentAPILevel;
     this.serviceMinimumAPILevel = serviceMinimumAPILevel;
+    this.marketName = marketName;
   }
 
   @Override public Single<List<PaymentService>> getPaymentServices() {
@@ -66,8 +69,8 @@ public class BillingServiceV3 implements BillingService {
     return Single.just(Collections.emptyList());
   }
 
-  @Override public Single<Merchant> getMerchant(String merchantName, int versionCode) {
-    return Single.error(new IllegalStateException("Not implemented!"));
+  @Override public Single<Merchant> getMerchant(String packageName, int versionCode) {
+    return Single.just(new Merchant(-1, marketName, packageName, versionCode));
   }
 
   @Override public Completable deletePurchase(String purchaseId) {

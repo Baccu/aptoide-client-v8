@@ -37,15 +37,11 @@ public class Purchase {
     return signatureData;
   }
 
-  public boolean isNew() {
-    return Status.NEW.equals(status);
-  }
-
   public boolean isCompleted() {
     return Status.COMPLETED.equals(status);
   }
 
   public static enum Status {
-    COMPLETED, FAILED, NEW
+    COMPLETED, FAILED
   }
 }

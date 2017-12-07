@@ -78,7 +78,7 @@ public class CreditCardAuthorizationFragment extends PermissionServiceFragment
   @Override public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     billing = ((AptoideApplication) getContext().getApplicationContext()).getBilling(
-        getArguments().getString(BillingActivity.EXTRA_MERCHANT_NAME));
+        getArguments().getString(BillingActivity.EXTRA_MERCHANT_PACKAGE_NAME));
     navigator = ((ActivityResultNavigator) getActivity()).getBillingNavigator();
     analytics = ((AptoideApplication) getContext().getApplicationContext()).getBillingAnalytics();
     backButton = PublishRelay.create();

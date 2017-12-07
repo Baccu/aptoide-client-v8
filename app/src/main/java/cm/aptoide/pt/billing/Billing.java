@@ -30,11 +30,11 @@ public class Billing {
   private final AuthorizationRepository authorizationRepository;
   private final CustomerPersistence customerPersistence;
   private final PurchaseTokenDecoder tokenDecoder;
-  private final String merchantName;
+  private final String merchantPackageName;
   private final BillingSyncScheduler syncScheduler;
   private final MerchantVersionProvider versionProvider;
 
-  public Billing(String merchantName, BillingService billingService,
+  public Billing(String merchantPackageName, BillingService billingService,
       TransactionRepository transactionRepository, AuthorizationRepository authorizationRepository,
       CustomerPersistence customerPersistence, PurchaseTokenDecoder tokenDecoder,
       BillingSyncScheduler syncScheduler, MerchantVersionProvider versionProvider) {
@@ -43,19 +43,19 @@ public class Billing {
     this.authorizationRepository = authorizationRepository;
     this.customerPersistence = customerPersistence;
     this.tokenDecoder = tokenDecoder;
-    this.merchantName = merchantName;
+    this.merchantPackageName = merchantPackageName;
     this.syncScheduler = syncScheduler;
     this.versionProvider = versionProvider;
   }
 
   public Single<Merchant> getMerchant() {
-    return versionProvider.getVersionCode(merchantName)
-        .flatMap(versionCode -> billingService.getMerchant(merchantName, versionCode));
+    return versionProvider.getVersionCode(merchantPackageName)
+        .flatMap(versionCode -> billingService.getMerchant(merchantPackageName, versionCode));
   }
 
   public Observable<Payment> getPayment(String sku) {
     return getMerchant().flatMapObservable(merchant -> billingService.getPaymentServices()
-        .flatMapObservable(services -> billingService.getProduct(sku, merchantName)
+        .flatMapObservable(services -> billingService.getProduct(sku, merchantPackageName)
             .flatMapObservable(product -> customerPersistence.getCustomer()
                 .switchMap(customer -> {
                   if (customer.isAuthenticated()) {
@@ -70,11 +70,11 @@ public class Billing {
   }
 
   public Single<List<Product>> getProducts(List<String> skus) {
-    return billingService.getProducts(merchantName, skus);
+    return billingService.getProducts(merchantPackageName, skus);
   }
 
   public Single<List<Purchase>> getPurchases() {
-    return billingService.getPurchases(merchantName);
+    return billingService.getPurchases(merchantPackageName);
   }
 
   public Completable consumePurchase(String purchaseToken) {
@@ -83,7 +83,7 @@ public class Billing {
 
   public Completable processPayment(String serviceId, String sku, String payload) {
     return getMerchant().flatMapCompletable(merchant -> billingService.getPaymentServices()
-        .flatMapCompletable(services -> billingService.getProduct(sku, merchantName)
+        .flatMapCompletable(services -> billingService.getProduct(sku, merchantPackageName)
             .flatMapCompletable(product -> customerPersistence.getCustomer()
                 .first()
                 .toSingle()
@@ -128,7 +128,7 @@ public class Billing {
     return customerPersistence.getCustomer()
         .first()
         .toSingle()
-        .flatMapCompletable(customer -> billingService.getProduct(sku, merchantName)
+        .flatMapCompletable(customer -> billingService.getProduct(sku, merchantPackageName)
             .flatMapCompletable(product -> getAuthorizedTransaction(customer, product).first()
                 .toSingle()
                 .flatMapCompletable(

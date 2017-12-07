@@ -137,11 +137,6 @@ public class BillingServiceV7 implements BillingService {
                 .getData()));
           }
 
-          if (response.code() == 404) {
-            return Single.just(
-                purchaseFactory.create(productId, null, null, Purchase.Status.NEW, null));
-          }
-
           return Single.just(
               purchaseFactory.create(productId, null, null, Purchase.Status.FAILED, null));
         });

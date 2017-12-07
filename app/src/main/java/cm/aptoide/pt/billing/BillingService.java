@@ -11,7 +11,7 @@ public interface BillingService {
 
   Single<List<PaymentService>> getPaymentServices();
 
-  Single<Merchant> getMerchant(String merchantName, int versionCode);
+  Single<Merchant> getMerchant(String packageName, int versionCode);
 
   Completable deletePurchase(String purchaseId);
 
