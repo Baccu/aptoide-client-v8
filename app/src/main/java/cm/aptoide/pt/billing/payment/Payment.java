@@ -7,7 +7,9 @@ import cm.aptoide.pt.billing.product.Product;
 import cm.aptoide.pt.billing.purchase.Purchase;
 import cm.aptoide.pt.billing.transaction.AuthorizedTransaction;
 import cm.aptoide.pt.billing.transaction.Transaction;
+import java.util.Collections;
 import java.util.List;
+import rx.Observable;
 
 public class Payment {
 
@@ -103,5 +105,9 @@ public class Payment {
 
   public boolean isCompleted() {
     return purchase.isCompleted();
+  }
+
+  public List<Authorization> getAuthorizations() {
+    return Collections.emptyList();
   }
 }

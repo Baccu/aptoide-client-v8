@@ -535,5 +535,6 @@
   <string name="fragment_payment_toolbar_title">Payment method</string>
   <string name="fragment_credit_card_authorization_toolbar_title">Credit card</string>
   <string name="fragment_credit_card_authorization_next_button">next</string>
+  <string name="fragment_payment_methods_toolbar_title">Add payment method</string>
 </resources>
 

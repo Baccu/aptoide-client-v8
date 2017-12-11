@@ -209,7 +209,7 @@ public class PaymentFragment extends PermissionServiceFragment implements Paymen
     for (PaymentService service : services) {
 
       radioButton = (RadioButton) getActivity().getLayoutInflater()
-          .inflate(R.layout.payment_item, serviceRadioGroup, false);
+          .inflate(R.layout.item_payment_authorization, serviceRadioGroup, false);
       radioButton.setId((int) billingIdManager.resolveServiceId(service.getId()));
 
       Glide.with(this)

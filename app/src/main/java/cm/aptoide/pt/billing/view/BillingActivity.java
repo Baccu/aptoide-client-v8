@@ -13,6 +13,7 @@ import cm.aptoide.pt.AptoideApplication;
 import cm.aptoide.pt.R;
 import cm.aptoide.pt.billing.Billing;
 import cm.aptoide.pt.billing.view.payment.PaymentFragment;
+import cm.aptoide.pt.billing.view.payment.PaymentMethodsFragment;
 import cm.aptoide.pt.view.BackButtonActivity;
 
 public class BillingActivity extends BackButtonActivity {
@@ -49,7 +50,7 @@ public class BillingActivity extends BackButtonActivity {
 
     if (savedInstanceState == null) {
       getFragmentNavigator().navigateToWithoutBackSave(
-          PaymentFragment.create(getIntent().getExtras()), true);
+          PaymentMethodsFragment.create(getIntent().getExtras()), true);
     }
 
     billing = ((AptoideApplication) getApplication()).getBilling(

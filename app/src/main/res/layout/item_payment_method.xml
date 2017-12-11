@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView
+    android:background="?android:attr/selectableItemBackground"
+    android:layout_width="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:gravity="center_vertical"
+    android:id="@+id/item_payment_method_text"
+    android:layout_height="56dp"
+    android:lineSpacingExtra="8sp"
+    android:paddingEnd="16dp"
+    android:paddingLeft="24dp"
+    android:paddingRight="16dp"
+    android:paddingStart="24dp"
+    android:fontFamily="sans-serif"
+    android:textStyle="normal"
+    android:textColor="@color/grey"
+    android:textSize="20sp"
+    tools:drawableEnd="@drawable/payment_plus_icon"
+    tools:drawableRight="@drawable/payment_plus_icon"
+    tools:text="PayPal"
+    />

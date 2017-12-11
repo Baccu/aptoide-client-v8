@@ -133,7 +133,7 @@ public class PaymentPresenter implements Presenter {
   private Completable navigateToAuthorizationView(PaymentService selectedService,
       Throwable throwable) {
     if (throwable instanceof ServiceNotAuthorizedException) {
-      navigator.navigateToTransactionAuthorizationView(merchantName, selectedService, sku);
+      navigator.navigateToAuthorizationView(merchantName, selectedService, sku);
       return Completable.complete();
     }
     return Completable.error(throwable);

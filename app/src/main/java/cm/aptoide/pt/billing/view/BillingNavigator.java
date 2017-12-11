@@ -12,6 +12,7 @@ import cm.aptoide.pt.billing.purchase.Purchase;
 import cm.aptoide.pt.billing.view.card.CreditCardAuthorizationFragment;
 import cm.aptoide.pt.billing.view.login.PaymentLoginFragment;
 import cm.aptoide.pt.billing.view.payment.PaymentFragment;
+import cm.aptoide.pt.billing.view.payment.PaymentView;
 import cm.aptoide.pt.billing.view.paypal.PayPalAuthorizationFragment;
 import cm.aptoide.pt.navigator.ActivityNavigator;
 import cm.aptoide.pt.navigator.CustomTabsNavigator;
@@ -52,14 +53,14 @@ public class BillingNavigator {
         PaymentLoginFragment.create(getBillingBundle(merchantName, sku, payload)), true);
   }
 
-  public void navigateToTransactionAuthorizationView(String merchantName, PaymentService service,
+  public void navigateToAuthorizationView(String merchantName, PaymentService service,
       String sku) {
 
     final Bundle bundle = getBillingBundle(merchantName, sku, service.getType());
 
     switch (service.getType()) {
       case PaymentServiceMapper.PAYPAL:
-        fragmentNavigator.navigateTo(PayPalAuthorizationFragment.create(bundle), true);
+        fragmentNavigator.navigateToWithoutBackSave(PaymentFragment.create(bundle), true);
         break;
       case PaymentServiceMapper.ADYEN:
         fragmentNavigator.navigateTo(CreditCardAuthorizationFragment.create(bundle), true);
