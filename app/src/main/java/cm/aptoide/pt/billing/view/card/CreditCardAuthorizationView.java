@@ -1,15 +1,11 @@
 package cm.aptoide.pt.billing.view.card;
 
-import cm.aptoide.pt.billing.product.Product;
 import cm.aptoide.pt.presenter.View;
-import com.adyen.core.models.Amount;
 import com.adyen.core.models.PaymentMethod;
 import com.adyen.core.models.paymentdetails.PaymentDetails;
 import rx.Observable;
 
 public interface CreditCardAuthorizationView extends View {
-
-  void showProduct(Product product);
 
   void showLoading();
 
@@ -23,8 +19,6 @@ public interface CreditCardAuthorizationView extends View {
 
   Observable<Void> cancelEvent();
 
-  void showCvcView(Amount amount, PaymentMethod paymentMethod);
-
-  void showCreditCardView(PaymentMethod paymentMethod, Amount amount, boolean cvcStatus,
-      boolean allowSave, String publicKey, String generationTime);
+  void showCreditCardView(PaymentMethod paymentMethod, boolean cvcStatus, String publicKey,
+      String generationTime);
 }

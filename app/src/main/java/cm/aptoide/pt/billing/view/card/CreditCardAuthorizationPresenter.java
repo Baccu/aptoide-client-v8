@@ -179,10 +179,11 @@ public class CreditCardAuthorizationPresenter implements Presenter {
           if (data.getPaymentMethod()
               .getType()
               .equals(PaymentMethod.Type.CARD)) {
-            view.showCreditCardView(data.getPaymentMethod(), data.getAmount(), true,
-                data.getShopperReference() != null, data.getPublicKey(), data.getGenerationTime());
+            view.
+                showCreditCardView(data.getPaymentMethod(), true, data.getPublicKey(),
+                    data.getGenerationTime());
           } else {
-            view.showCvcView(data.getAmount(), data.getPaymentMethod());
+            navigator.popView();
           }
         })
         .observeOn(viewScheduler)
@@ -208,7 +209,6 @@ public class CreditCardAuthorizationPresenter implements Presenter {
         .doOnNext(__ -> view.showLoading())
         .flatMap(__ -> billing.getPayment(sku))
         .observeOn(viewScheduler)
-        .doOnNext(payment -> view.showProduct(payment.getProduct()))
         .first(payment -> payment.isPendingAuthorization())
         .map(payment -> payment.getAuthorization())
         .cast(AdyenAuthorization.class)

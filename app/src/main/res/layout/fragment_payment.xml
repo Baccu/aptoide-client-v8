@@ -203,6 +203,7 @@
       />
 
   <LinearLayout
+      android:layout_below="@id/fragment_payment_app_bar"
       android:elevation="10dp"
       android:id="@+id/fragment_payment_global_progress_bar"
       android:layout_width="match_parent"

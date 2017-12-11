@@ -4,33 +4,28 @@ import adyen.com.adyencse.encrypter.ClientSideEncrypter;
 import adyen.com.adyencse.encrypter.exception.EncrypterException;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.ImageView;
-import android.widget.TextView;
 import cm.aptoide.pt.AptoideApplication;
 import cm.aptoide.pt.R;
 import cm.aptoide.pt.analytics.ScreenTagHistory;
 import cm.aptoide.pt.billing.Billing;
 import cm.aptoide.pt.billing.BillingAnalytics;
 import cm.aptoide.pt.billing.payment.Adyen;
-import cm.aptoide.pt.billing.product.Product;
 import cm.aptoide.pt.billing.view.BillingActivity;
 import cm.aptoide.pt.billing.view.BillingNavigator;
 import cm.aptoide.pt.navigator.ActivityResultNavigator;
-import cm.aptoide.pt.networking.image.ImageLoader;
 import cm.aptoide.pt.permission.PermissionServiceFragment;
 import cm.aptoide.pt.view.rx.RxAlertDialog;
-import com.adyen.core.models.Amount;
 import com.adyen.core.models.PaymentMethod;
 import com.adyen.core.models.paymentdetails.CreditCardPaymentDetails;
 import com.adyen.core.models.paymentdetails.PaymentDetails;
-import com.adyen.core.utils.AmountUtil;
-import com.adyen.core.utils.StringUtils;
 import com.braintreepayments.cardform.view.CardForm;
 import com.jakewharton.rxbinding.view.RxView;
 import com.jakewharton.rxrelay.PublishRelay;
@@ -47,15 +42,9 @@ public class CreditCardAuthorizationFragment extends PermissionServiceFragment
   private View progressBar;
   private RxAlertDialog networkErrorDialog;
   private ClickHandler clickHandler;
-  private View overlay;
   private CardForm cardForm;
-  private Button buyButton;
-  private Button cancelButton;
-  private ImageView productIcon;
-  private TextView productName;
-  private TextView productDescription;
-  private TextView productPrice;
-  private TextView preAuthorizedCardText;
+  private Button nextButton;
+  private Toolbar toolbar;
 
   private Billing billing;
   private BillingNavigator navigator;
@@ -66,8 +55,6 @@ public class CreditCardAuthorizationFragment extends PermissionServiceFragment
   private String publicKey;
   private String generationTime;
   private PaymentMethod paymentMethod;
-  private boolean cvcOnly;
-  private CheckBox rememberCardCheckBox;
 
   public static CreditCardAuthorizationFragment create(Bundle bundle) {
     final CreditCardAuthorizationFragment fragment = new CreditCardAuthorizationFragment();
@@ -88,21 +75,15 @@ public class CreditCardAuthorizationFragment extends PermissionServiceFragment
 
   @Override public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
+    setHasOptionsMenu(true);
+    toolbar = (Toolbar) view.findViewById(R.id.fragment_credit_card_authorization_toolbar);
+    ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
+    ((AppCompatActivity) getActivity()).getSupportActionBar()
+        .setDisplayHomeAsUpEnabled(true);
 
-    preAuthorizedCardText =
-        (TextView) view.findViewById(R.id.fragment_credit_card_authorization_pre_authorized_card);
     progressBar = view.findViewById(R.id.fragment_credit_card_authorization_progress_bar);
-    overlay = view.findViewById(R.id.fragment_credit_card_authorization_overlay);
-    productIcon = (ImageView) view.findViewById(R.id.include_payment_product_icon);
-    productName = (TextView) view.findViewById(R.id.fragment_payment_product_name);
-    productDescription = (TextView) view.findViewById(R.id.include_payment_product_title);
-    productPrice = (TextView) view.findViewById(R.id.include_payment_product_price);
-    cancelButton = (Button) view.findViewById(R.id.include_payment_buttons_cancel_button);
-    buyButton = (Button) view.findViewById(R.id.fragment_payment_buy_button);
-    rememberCardCheckBox = (CheckBox) view.findViewById(
-        R.id.fragment_credit_card_authorization_remember_card_check_box);
-    buyButton.setVisibility(View.GONE);
-    cardForm = (CardForm) view.findViewById(R.id.fragment_braintree_credit_card_form);
+    nextButton = (Button) view.findViewById(R.id.fragment_credit_card_authorization_next_button);
+    cardForm = (CardForm) view.findViewById(R.id.fragment_credit_card_authorization_form);
 
     networkErrorDialog =
         new RxAlertDialog.Builder(getContext()).setMessage(R.string.connection_error)
@@ -119,9 +100,9 @@ public class CreditCardAuthorizationFragment extends PermissionServiceFragment
 
     cardForm.setOnCardFormValidListener(valid -> {
       if (valid) {
-        buyButton.setVisibility(View.VISIBLE);
+        nextButton.setEnabled(true);
       } else {
-        buyButton.setVisibility(View.GONE);
+        nextButton.setEnabled(false);
       }
     });
     cardForm.setOnCardFormSubmitListener(() -> {
@@ -144,31 +125,25 @@ public class CreditCardAuthorizationFragment extends PermissionServiceFragment
     return inflater.inflate(R.layout.fragment_credit_card_authorization, container, false);
   }
 
+  @Override public boolean onOptionsItemSelected(MenuItem item) {
+    if (item.getItemId() == android.R.id.home) {
+      backButton.call(null);
+      return true;
+    }
+    return super.onOptionsItemSelected(item);
+  }
+
   @Override public void onDestroyView() {
     unregisterClickHandler(clickHandler);
+    toolbar = null;
     progressBar = null;
     networkErrorDialog.dismiss();
     networkErrorDialog = null;
-    overlay = null;
-    productIcon = null;
-    productName = null;
-    productDescription = null;
-    productPrice = null;
-    cancelButton = null;
-    rememberCardCheckBox = null;
-    buyButton = null;
-    preAuthorizedCardText = null;
+    nextButton = null;
     cardForm.setOnCardFormSubmitListener(null);
     cardForm.setOnCardFormValidListener(null);
     cardForm = null;
     super.onDestroyView();
-  }
-
-  @Override public void showProduct(Product product) {
-    ImageLoader.with(getContext())
-        .load(product.getIcon(), productIcon);
-    productName.setText(product.getTitle());
-    productDescription.setText(product.getDescription());
   }
 
   @Override public void showLoading() {
@@ -185,7 +160,7 @@ public class CreditCardAuthorizationFragment extends PermissionServiceFragment
   }
 
   @Override public Observable<PaymentDetails> creditCardDetailsEvent() {
-    return Observable.merge(keyboardBuyRelay, RxView.clicks(buyButton))
+    return Observable.merge(keyboardBuyRelay, RxView.clicks(nextButton))
         .map(__ -> getPaymentDetails(publicKey, generationTime));
   }
 
@@ -196,56 +171,25 @@ public class CreditCardAuthorizationFragment extends PermissionServiceFragment
   }
 
   @Override public Observable<Void> cancelEvent() {
-    return Observable.merge(RxView.clicks(cancelButton), RxView.clicks(overlay), backButton);
-  }
-
-  @Override public void showCvcView(Amount amount, PaymentMethod paymentMethod) {
-    cvcOnly = true;
-    this.paymentMethod = paymentMethod;
-    showProductPrice(amount);
-    preAuthorizedCardText.setVisibility(View.VISIBLE);
-    preAuthorizedCardText.setText(paymentMethod.getName());
-    rememberCardCheckBox.setVisibility(View.GONE);
-    cardForm.cardRequired(false)
-        .expirationRequired(false)
-        .cvvRequired(true)
-        .postalCodeRequired(false)
-        .mobileNumberRequired(false)
-        .actionLabel(getString(R.string.buy))
-        .setup(getActivity());
+    return backButton;
   }
 
   @Override
-  public void showCreditCardView(PaymentMethod paymentMethod, Amount amount, boolean cvcRequired,
-      boolean allowSave, String publicKey, String generationTime) {
+  public void showCreditCardView(PaymentMethod paymentMethod, boolean cvcRequired, String publicKey,
+      String generationTime) {
     this.paymentMethod = paymentMethod;
     this.publicKey = publicKey;
     this.generationTime = generationTime;
-    cvcOnly = false;
-    preAuthorizedCardText.setVisibility(View.GONE);
-    rememberCardCheckBox.setVisibility(View.VISIBLE);
-    showProductPrice(amount);
     cardForm.cardRequired(true)
         .expirationRequired(true)
         .cvvRequired(cvcRequired)
         .postalCodeRequired(false)
         .mobileNumberRequired(false)
-        .actionLabel(getString(R.string.buy))
+        .actionLabel(getString(R.string.fragment_credit_card_authorization_next_button))
         .setup(getActivity());
   }
 
-  private void showProductPrice(Amount amount) {
-    this.productPrice.setText(
-        AmountUtil.format(amount, true, StringUtils.getLocale(getActivity())));
-  }
-
   private PaymentDetails getPaymentDetails(String publicKey, String generationTime) {
-
-    if (cvcOnly) {
-      final PaymentDetails paymentDetails = new PaymentDetails(paymentMethod.getInputDetails());
-      paymentDetails.fill("cardDetails.cvc", cardForm.getCvv());
-      return paymentDetails;
-    }
 
     final CreditCardPaymentDetails creditCardPaymentDetails =
         new CreditCardPaymentDetails(paymentMethod.getInputDetails());
@@ -265,7 +209,7 @@ public class CreditCardAuthorizationFragment extends PermissionServiceFragment
     } catch (EncrypterException e) {
       Log.e(TAG, "EncrypterException occurred while generating token.", e);
     }
-    creditCardPaymentDetails.fillStoreDetails(rememberCardCheckBox.isChecked());
+    creditCardPaymentDetails.fillStoreDetails(true);
     return creditCardPaymentDetails;
   }
 }

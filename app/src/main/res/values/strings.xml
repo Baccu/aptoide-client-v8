@@ -533,5 +533,7 @@
   <string name="fragment_payment_product_name_label">You\'re purchasing</string>
   <string name="fragment_payment_add_payment_method_button">Add payment method</string>
   <string name="fragment_payment_toolbar_title">Payment method</string>
+  <string name="fragment_credit_card_authorization_toolbar_title">Credit card</string>
+  <string name="fragment_credit_card_authorization_next_button">next</string>
 </resources>
 
