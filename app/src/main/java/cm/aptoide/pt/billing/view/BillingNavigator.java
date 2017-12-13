@@ -12,8 +12,7 @@ import cm.aptoide.pt.billing.purchase.Purchase;
 import cm.aptoide.pt.billing.view.card.CreditCardAuthorizationFragment;
 import cm.aptoide.pt.billing.view.login.PaymentLoginFragment;
 import cm.aptoide.pt.billing.view.payment.PaymentFragment;
-import cm.aptoide.pt.billing.view.payment.PaymentView;
-import cm.aptoide.pt.billing.view.paypal.PayPalAuthorizationFragment;
+import cm.aptoide.pt.billing.view.payment.PaymentMethodsFragment;
 import cm.aptoide.pt.navigator.ActivityNavigator;
 import cm.aptoide.pt.navigator.CustomTabsNavigator;
 import cm.aptoide.pt.navigator.FragmentNavigator;
@@ -151,6 +150,11 @@ public class BillingNavigator {
   public void navigateToPaymentView(String merchantName, String sku, String payload) {
     fragmentNavigator.navigateToWithoutBackSave(
         PaymentFragment.create(getBillingBundle(merchantName, sku, payload)), true);
+  }
+
+  public void navigateToPaymentMethodsView(String merchantName, String sku, String payload) {
+    fragmentNavigator.navigateToWithoutBackSave(
+        PaymentMethodsFragment.create(getBillingBundle(merchantName, sku, payload)), true);
   }
 
   public static class PayPalResult {

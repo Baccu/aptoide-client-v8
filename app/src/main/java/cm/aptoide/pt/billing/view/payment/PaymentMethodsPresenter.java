@@ -74,17 +74,21 @@ public class PaymentMethodsPresenter implements Presenter {
         .compose(view.bindUntilEvent(View.LifecycleEvent.DESTROY))
         .subscribe(payment -> {
 
-          if (payment.getAuthorizations()
-              .isEmpty()) {
-            if (payment.getPaymentServices()
-                .isEmpty()) {
-              view.showNoPaymentMethodsAvailableMessage();
-            } else {
-              view.showAvailablePaymentMethods(payment.getPaymentServices());
-            }
-            view.hideLoading();
+          if (!payment.getCustomer().isAuthenticated()) {
+            navigator.navigateToCustomerAuthenticationView(merchantPackageName, sku, payload);
           } else {
-            navigator.navigateToPaymentView(merchantPackageName, sku, payload);
+            if (payment.getAuthorizations()
+                .isEmpty()) {
+              if (payment.getPaymentServices()
+                  .isEmpty()) {
+                view.showNoPaymentMethodsAvailableMessage();
+              } else {
+                view.showAvailablePaymentMethods(payment.getPaymentServices());
+              }
+              view.hideLoading();
+            } else {
+              navigator.navigateToPaymentView(merchantPackageName, sku, payload);
+            }
           }
         }, throwable -> {
           throw new OnErrorNotImplementedException(throwable);
