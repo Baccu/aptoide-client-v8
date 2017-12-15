@@ -10,8 +10,10 @@ import cm.aptoide.pt.dataprovider.ws.BodyInterceptor;
 import cm.aptoide.pt.dataprovider.ws.v7.BaseBody;
 import cm.aptoide.pt.dataprovider.ws.v7.V7;
 import cm.aptoide.pt.dataprovider.ws.v7.billing.GetAuthorizationRequest;
+import cm.aptoide.pt.dataprovider.ws.v7.billing.GetAuthorizationsRequest;
 import cm.aptoide.pt.dataprovider.ws.v7.billing.UpdateAuthorizationRequest;
 import cm.aptoide.pt.networking.AuthenticationPersistence;
+import java.util.List;
 import okhttp3.OkHttpClient;
 import retrofit2.Converter;
 import rx.Single;
@@ -103,6 +105,29 @@ public class AuthorizationServiceV7 implements AuthorizationService {
               authorizationFactory.create(billingIdManager.generateAuthorizationId(), customerId,
                   null, Authorization.Status.FAILED, null, null, null, transactionId,
                   null));
+        });
+  }
+
+  @Override public Single<List<Authorization>> getAuthorizations(String customerId) {
+    return authenticationPersistence.getAuthentication()
+        .flatMapObservable(
+            authentication -> GetAuthorizationsRequest.of(sharedPreferences, httpClient,
+                converterFactory, bodyInterceptorV7, tokenInvalidator,
+                authentication.getAccessToken(), customerId)
+                .observe())
+        .toSingle()
+        .flatMap(response -> {
+
+          if (response.isSuccessful()) {
+
+            if (response.body() != null && response.body()
+                .isOk()) {
+              return Single.just(authorizationMapper.map(response.body()
+                  .getData()
+                  .getList()));
+            }
+          }
+          return Single.error(new IllegalStateException(V7.getErrorMessage(response.body())));
         });
   }
 }

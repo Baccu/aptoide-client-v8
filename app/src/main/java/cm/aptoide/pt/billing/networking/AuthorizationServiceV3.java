@@ -14,6 +14,7 @@ import cm.aptoide.pt.dataprovider.ws.v3.BaseBody;
 import cm.aptoide.pt.dataprovider.ws.v3.CreateTransactionRequest;
 import cm.aptoide.pt.dataprovider.ws.v3.GetApkInfoRequest;
 import cm.aptoide.pt.dataprovider.ws.v3.GetTransactionRequest;
+import java.util.List;
 import okhttp3.OkHttpClient;
 import retrofit2.Converter;
 import rx.Single;
@@ -127,5 +128,9 @@ public class AuthorizationServiceV3 implements AuthorizationService {
                   AuthorizationFactory.PAYPAL_SDK, Authorization.Status.FAILED, null,
                   null, null, transactionId, null));
         });
+  }
+
+  @Override public Single<List<Authorization>> getAuthorizations(String customerId) {
+    return Single.error(new IllegalStateException("Not implemented."));
   }
 }

@@ -7,9 +7,7 @@ import cm.aptoide.pt.billing.product.Product;
 import cm.aptoide.pt.billing.purchase.Purchase;
 import cm.aptoide.pt.billing.transaction.AuthorizedTransaction;
 import cm.aptoide.pt.billing.transaction.Transaction;
-import java.util.Collections;
 import java.util.List;
-import rx.Observable;
 
 public class Payment {
 
@@ -20,15 +18,17 @@ public class Payment {
 
   private final Transaction transaction;
   private final Purchase purchase;
+  private final List<Authorization> authorizations;
 
   public Payment(Merchant merchant, Customer customer, Product product, Transaction transaction,
-      Purchase purchase, List<PaymentService> paymentServices) {
+      Purchase purchase, List<PaymentService> paymentServices, List<Authorization> authorizations) {
     this.merchant = merchant;
     this.customer = customer;
     this.product = product;
     this.transaction = transaction;
     this.purchase = purchase;
     this.paymentServices = paymentServices;
+    this.authorizations = authorizations;
   }
 
   public Merchant getMerchant() {
@@ -108,6 +108,6 @@ public class Payment {
   }
 
   public List<Authorization> getAuthorizations() {
-    return Collections.emptyList();
+    return authorizations;
   }
 }

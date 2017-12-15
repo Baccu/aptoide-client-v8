@@ -18,6 +18,7 @@ import cm.aptoide.pt.billing.purchase.Purchase;
 import cm.aptoide.pt.billing.transaction.AuthorizedTransaction;
 import cm.aptoide.pt.billing.transaction.Transaction;
 import cm.aptoide.pt.billing.transaction.TransactionRepository;
+import java.util.Collections;
 import java.util.List;
 import rx.Completable;
 import rx.Observable;
@@ -59,13 +60,17 @@ public class Billing {
             .flatMapObservable(product -> customerPersistence.getCustomer()
                 .switchMap(customer -> {
                   if (customer.isAuthenticated()) {
-                    return getAuthorizedTransaction(customer, product).flatMapSingle(
-                        authorizedTransaction -> billingService.getPurchase(product.getId())
-                            .map(purchase -> new Payment(merchant, customer, product,
-                                authorizedTransaction, purchase, services)));
+                    return Observable.combineLatest(
+                        transactionRepository.getTransaction(customer.getId(), product.getId()),
+                        authorizationRepository.getAuthorizations(customer.getId()),
+                        billingService.getPurchase(product.getId())
+                            .toObservable(),
+                        (transaction, authorizations, purchase) -> new Payment(merchant, customer,
+                            product, transaction, purchase, services, authorizations));
                   }
                   return Observable.just(
-                      new Payment(merchant, customer, product, null, null, services));
+                      new Payment(merchant, customer, product, null, null, services,
+                          Collections.emptyList()));
                 }))));
   }
 

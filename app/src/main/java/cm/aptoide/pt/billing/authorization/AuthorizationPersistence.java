@@ -1,5 +1,6 @@
 package cm.aptoide.pt.billing.authorization;
 
+import java.util.List;
 import rx.Completable;
 import rx.Observable;
 import rx.Single;
@@ -17,4 +18,8 @@ public interface AuthorizationPersistence {
       Authorization.Status status);
 
   Completable removeAuthorizations(String customerId, String transactionId);
+
+  Observable<List<Authorization>> getAuthorizations(String customerId);
+
+  Completable saveAuthorizations(List<Authorization> authorizations);
 }

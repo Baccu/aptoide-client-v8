@@ -10,6 +10,8 @@ import cm.aptoide.pt.billing.Price;
 import cm.aptoide.pt.billing.authorization.Authorization;
 import cm.aptoide.pt.billing.authorization.AuthorizationFactory;
 import cm.aptoide.pt.dataprovider.ws.v7.billing.GetAuthorizationRequest;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AuthorizationMapperV7 {
 
@@ -45,5 +47,15 @@ public class AuthorizationMapperV7 {
         String.valueOf(response.getUser()
             .getId()), response.getType(), Authorization.Status.valueOf(response.getStatus()), null,
         price, description, transactionId, session);
+  }
+
+  public List<Authorization> map(
+      List<GetAuthorizationRequest.ResponseBody.Authorization> authorizations) {
+    final List<Authorization> result = new ArrayList<>();
+
+    for (GetAuthorizationRequest.ResponseBody.Authorization authorization : authorizations) {
+      result.add(map(authorization, null));
+    }
+    return result;
   }
 }

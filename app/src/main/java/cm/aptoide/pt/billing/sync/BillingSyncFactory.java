@@ -40,4 +40,10 @@ public class BillingSyncFactory {
         transactionService, true, true, BuildConfig.PAYMENT_TRANSACTION_SYNC_INTERVAL_MILLIS, 0,
         productId);
   }
+
+  public Sync createAuthorizationsSync(String customerId) {
+    return new AuthorizationsSync("authorizations" + customerId, customerId, authorizationService,
+        authorizationPersistence, true, true,
+        BuildConfig.PAYMENT_AUTHORIZATION_SYNC_INTERVAL_MILLIS, 0);
+  }
 }

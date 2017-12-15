@@ -71,6 +71,24 @@ public class RealmAuthorizationPersistence implements AuthorizationPersistence {
         .subscribeOn(scheduler);
   }
 
+  @Override public Observable<List<Authorization>> getAuthorizations(String customerId) {
+    return authorizationRelay.startWith(getAuthorizations())
+        .flatMap(authorizations -> Observable.from(authorizations)
+            .filter(authorization -> authorization.getCustomerId()
+                .equals(customerId))
+            .toList())
+        .subscribeOn(scheduler);
+  }
+
+  @Override public Completable saveAuthorizations(List<Authorization> authorizations) {
+    return Observable.from(authorizations)
+        .doOnNext(authorization -> this.authorizations.put(authorization.getId(), authorization))
+        .toList()
+        .doOnCompleted(() -> authorizationRelay.call(getAuthorizations()))
+        .toCompletable()
+        .subscribeOn(scheduler);
+  }
+
   @Override
   public Single<Authorization> updateAuthorization(String customerId, String authorizationId,
       Authorization.Status status, String metadata) {

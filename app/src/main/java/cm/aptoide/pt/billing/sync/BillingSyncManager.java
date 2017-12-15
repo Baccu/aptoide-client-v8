@@ -63,4 +63,10 @@ public class BillingSyncManager implements BillingSyncScheduler {
       currentSyncs.remove(syncId);
     }
   }
+
+  @Override public void syncAuthorizations(String customerId) {
+    final Sync sync = syncFactory.createAuthorizationsSync(customerId);
+    currentSyncs.add(sync.getId());
+    syncScheduler.schedule(sync);
+  }
 }

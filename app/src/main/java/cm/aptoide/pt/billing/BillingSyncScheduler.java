@@ -9,4 +9,6 @@ public interface BillingSyncScheduler {
   void stopSyncs();
 
   void cancelAuthorizationSync(String transactionId);
+
+  void syncAuthorizations(String customerId);
 }

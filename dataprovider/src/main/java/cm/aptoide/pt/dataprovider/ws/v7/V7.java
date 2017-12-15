@@ -38,6 +38,7 @@ import cm.aptoide.pt.dataprovider.ws.v7.analyticsbody.DownloadInstallAnalyticsBa
 import cm.aptoide.pt.dataprovider.ws.v7.billing.CreateTransactionRequest;
 import cm.aptoide.pt.dataprovider.ws.v7.billing.DeletePurchaseRequest;
 import cm.aptoide.pt.dataprovider.ws.v7.billing.GetAuthorizationRequest;
+import cm.aptoide.pt.dataprovider.ws.v7.billing.GetAuthorizationsRequest;
 import cm.aptoide.pt.dataprovider.ws.v7.billing.GetMerchantRequest;
 import cm.aptoide.pt.dataprovider.ws.v7.billing.GetProductsRequest;
 import cm.aptoide.pt.dataprovider.ws.v7.billing.GetPurchaseRequest;
@@ -517,6 +518,10 @@ public abstract class V7<U, B> extends WebService<V7.Interfaces, U> {
     @POST("user/follower/set/") Observable<BaseV7Response> unfollowUser(
         @Body UnfollowUserRequest.Body body,
         @Header(WebService.BYPASS_HEADER_KEY) boolean bypassCache);
+
+    @GET("inapp/bank/authorizations/get")
+    Observable<Response<GetAuthorizationsRequest.ResponseBody>> getBillingAuthorizations(
+        @Header("Authorization") String authorization, @Query("user_id") String customerId);
   }
 }
 
