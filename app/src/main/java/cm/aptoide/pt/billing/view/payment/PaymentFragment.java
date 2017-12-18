@@ -183,12 +183,12 @@ public class PaymentFragment extends PermissionServiceFragment implements Paymen
 
   @Override public Observable<String> cancelEvent() {
     return cancelRelay.map(
-        __ -> billingIdManager.generateServiceId(serviceRadioGroup.getCheckedRadioButtonId()));
+        __ -> billingIdManager.generatePaymentMehtodId(serviceRadioGroup.getCheckedRadioButtonId()));
   }
 
   @Override public Observable<String> buyEvent() {
     return RxView.clicks(buyButton)
-        .map(__ -> billingIdManager.generateServiceId(serviceRadioGroup.getCheckedRadioButtonId()));
+        .map(__ -> billingIdManager.generatePaymentMehtodId(serviceRadioGroup.getCheckedRadioButtonId()));
   }
 
   @Override public void showPaymentLoading() {

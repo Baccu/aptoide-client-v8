@@ -1,4 +1,4 @@
-package cm.aptoide.pt.sync.alarm;
+package cm.aptoide.pt.sync;
 
 import android.app.Service;
 import android.content.Intent;
@@ -6,8 +6,6 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import cm.aptoide.pt.AptoideApplication;
 import cm.aptoide.pt.crashreports.CrashReport;
-import cm.aptoide.pt.sync.Sync;
-import cm.aptoide.pt.sync.SyncScheduler;
 
 public class AlarmSyncService extends Service {
 
@@ -17,19 +15,19 @@ public class AlarmSyncService extends Service {
 
   @Override public void onCreate() {
     super.onCreate();
-    scheduler = ((AptoideApplication) getApplicationContext()).getAlarmSyncScheduler();
+    scheduler = ((AptoideApplication) getApplicationContext()).getSyncScheduler();
     storage = ((AptoideApplication) getApplicationContext()).getSyncStorage();
     crashReport = CrashReport.getInstance();
   }
 
   @Override public int onStartCommand(Intent intent, int flags, int startId) {
 
-    if (intent != null && AlarmSyncScheduler.ACTION_SYNC.equals(intent.getAction())) {
+    if (intent != null && SyncScheduler.ACTION_SYNC.equals(intent.getAction())) {
 
       final String syncId = intent.getData()
           .getFragment();
       final Sync sync = storage.get(syncId);
-      final boolean reschedule = intent.getBooleanExtra(AlarmSyncScheduler.EXTRA_RESCHEDULE, false);
+      final boolean reschedule = intent.getBooleanExtra(SyncScheduler.EXTRA_RESCHEDULE, false);
 
       if (sync != null) {
         sync.execute()

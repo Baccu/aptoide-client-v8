@@ -324,7 +324,7 @@
     </receiver>
 
     <service android:name=".notification.PullingContentService"/>
-    <service android:name=".sync.alarm.AlarmSyncService"/>
+    <service android:name=".sync.AlarmSyncService"/>
 
     <receiver android:name=".notification.NotificationReceiver">
       <intent-filter>

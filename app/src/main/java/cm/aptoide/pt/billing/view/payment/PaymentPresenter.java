@@ -7,13 +7,10 @@ package cm.aptoide.pt.billing.view.payment;
 
 import cm.aptoide.pt.billing.Billing;
 import cm.aptoide.pt.billing.BillingAnalytics;
-import cm.aptoide.pt.billing.exception.ServiceNotAuthorizedException;
-import cm.aptoide.pt.billing.payment.PaymentMethod;
 import cm.aptoide.pt.billing.view.BillingNavigator;
 import cm.aptoide.pt.presenter.Presenter;
 import cm.aptoide.pt.presenter.View;
 import java.io.IOException;
-import rx.Completable;
 import rx.Scheduler;
 
 public class PaymentPresenter implements Presenter {
@@ -62,7 +59,7 @@ public class PaymentPresenter implements Presenter {
               .isAuthenticated()) {
             navigator.navigateToCustomerAuthenticationView(merchantName, sku, payload);
           } else {
-            if (payment.isNew() || payment.isPendingAuthorization()) {
+            if (payment.isNew()) {
               view.hidePaymentLoading();
             }
 
@@ -116,9 +113,7 @@ public class PaymentPresenter implements Presenter {
                     .observeOn(viewScheduler)
                 .doOnCompleted(() -> {
                   view.hideBuyLoading();
-                })
-                    .onErrorResumeNext(throwable -> navigateToAuthorizationView(
-                        payment.getPaymentMethod(serviceId), throwable))))
+                })))
             .observeOn(viewScheduler)
             .doOnError(throwable -> {
               view.hideBuyLoading();
@@ -128,15 +123,6 @@ public class PaymentPresenter implements Presenter {
         .compose(view.bindUntilEvent(View.LifecycleEvent.DESTROY))
         .subscribe(__ -> {
         }, throwable -> navigator.popViewWithResult(throwable));
-  }
-
-  private Completable navigateToAuthorizationView(PaymentMethod selectedService,
-      Throwable throwable) {
-    if (throwable instanceof ServiceNotAuthorizedException) {
-      navigator.navigateToAuthorizationView(merchantName, selectedService, sku);
-      return Completable.complete();
-    }
-    return Completable.error(throwable);
   }
 
   private void showError(Throwable throwable) {

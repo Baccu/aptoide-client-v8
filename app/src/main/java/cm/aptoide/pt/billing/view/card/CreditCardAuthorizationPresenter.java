@@ -162,7 +162,7 @@ public class CreditCardAuthorizationPresenter implements Presenter {
                 .flatMapCompletable(payment -> {
           if (result.isProcessed()) {
             return billing.authorize(sku, result.getPayment()
-                .getPayload(), payment.getPaymentMethod()
+                .getPayload(), payment.getSelectedPaymentMethod()
                 .getId());
           }
           return Completable.error(result.getError());
@@ -213,8 +213,7 @@ public class CreditCardAuthorizationPresenter implements Presenter {
         .doOnNext(__ -> view.showLoading())
         .flatMap(__ -> billing.getPayment(sku))
         .observeOn(viewScheduler)
-        .first(payment -> payment.isPendingAuthorization())
-        .map(payment -> payment.getAuthorization())
+        .map(payment -> payment.getSelectedAuthorization())
         .cast(AdyenAuthorization.class)
         .flatMapCompletable(authorization -> adyen.createPayment(authorization.getSession()))
         .observeOn(viewScheduler)

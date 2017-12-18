@@ -4,9 +4,9 @@ public class AdyenAuthorization extends MetadataAuthorization {
 
   private String session;
 
-  public AdyenAuthorization(String id, String customerId, Status status, String transactionId,
+  public AdyenAuthorization(String id, String customerId, Status status, String paymentMethodId,
       String session, String metadata) {
-    super(id, customerId, status, transactionId, metadata);
+    super(id, customerId, status, paymentMethodId, metadata);
     this.session = session;
   }
 

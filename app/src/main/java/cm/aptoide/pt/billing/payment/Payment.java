@@ -5,7 +5,6 @@ import cm.aptoide.pt.billing.authorization.Authorization;
 import cm.aptoide.pt.billing.customer.Customer;
 import cm.aptoide.pt.billing.product.Product;
 import cm.aptoide.pt.billing.purchase.Purchase;
-import cm.aptoide.pt.billing.transaction.AuthorizedTransaction;
 import cm.aptoide.pt.billing.transaction.Transaction;
 import java.util.List;
 
@@ -16,19 +15,19 @@ public class Payment {
   private final Product product;
   private final List<PaymentMethod> paymentMethods;
 
+  private final String selectedPaymentMethodId;
   private final Transaction transaction;
   private final Purchase purchase;
-  private final List<Authorization> authorizations;
 
   public Payment(Merchant merchant, Customer customer, Product product, Transaction transaction,
-      Purchase purchase, List<PaymentMethod> paymentMethods, List<Authorization> authorizations) {
+      Purchase purchase, List<PaymentMethod> paymentMethods, String selectedPaymentMethodId) {
     this.merchant = merchant;
     this.customer = customer;
     this.product = product;
     this.transaction = transaction;
     this.purchase = purchase;
     this.paymentMethods = paymentMethods;
-    this.authorizations = authorizations;
+    this.selectedPaymentMethodId = selectedPaymentMethodId;
   }
 
   public Merchant getMerchant() {
@@ -43,22 +42,14 @@ public class Payment {
     return product;
   }
 
-  public PaymentMethod getPaymentMethod(String serviceId) {
-    for (PaymentMethod service: paymentMethods) {
-      if (service.getId()
-          .equals(serviceId)) {
-        return service;
+  public PaymentMethod getSelectedPaymentMethod() {
+    for (PaymentMethod paymentMethod : paymentMethods) {
+      if (paymentMethod.getId()
+          .equals(selectedPaymentMethodId)) {
+        return paymentMethod;
       }
     }
-    throw new IllegalArgumentException("No service for id: " + serviceId);
-  }
-
-  public PaymentMethod getPaymentMethod() {
-    if (transaction != null) {
-      return getPaymentMethod(transaction.getServiceId());
-    }
-    throw new IllegalStateException(
-        "No transaction for payment yet. Can not return payment service.");
+    return null;
   }
 
   public Purchase getPurchase() {
@@ -81,18 +72,12 @@ public class Payment {
     return false;
   }
 
-  public Authorization getAuthorization() {
-    if (transaction instanceof AuthorizedTransaction) {
-      return ((AuthorizedTransaction) transaction).getAuthorization();
+  public Authorization getSelectedAuthorization() {
+    final PaymentMethod selectedPaymentMethod = getSelectedPaymentMethod();
+    if (selectedPaymentMethod != null && selectedPaymentMethod.getSelectedAuthorization() != null) {
+      return selectedPaymentMethod.getSelectedAuthorization();
     }
-    throw new IllegalStateException("Payment does not require authorization.");
-  }
-
-  public boolean isPendingAuthorization() {
-    if (transaction instanceof AuthorizedTransaction) {
-      return transaction.isPendingAuthorization();
-    }
-    throw new IllegalStateException("Payment does not require authorization.");
+    return null;
   }
 
   public boolean isProcessing() {
@@ -107,7 +92,11 @@ public class Payment {
     return purchase.isCompleted();
   }
 
-  public List<Authorization> getAuthorizations() {
-    return authorizations;
+  public boolean isAuthorized() {
+    final PaymentMethod selectedPaymentMethod = getSelectedPaymentMethod();
+    return selectedPaymentMethod != null
+        && selectedPaymentMethod.getSelectedAuthorization() != null
+        && selectedPaymentMethod.getSelectedAuthorization()
+        .isActive();
   }
 }

@@ -11,15 +11,17 @@ public class PayPalPaymentService implements PaymentService<String> {
 
   public static final String TYPE = "PAYPAL";
 
-  @Override public Single<Transaction> processPayment(String customerId, String productId,
-      String paymentMethodId, String payload, TransactionRepository transactionRepository) {
+  @Override public Single<Transaction> createTransaction(String customerId, String productId,
+      String paymentMethodId, String payload, TransactionRepository transactionRepository,
+      String paymentMethodType) {
     return transactionRepository.createTransaction(customerId, productId, paymentMethodId, payload);
   }
 
   @Override
-  public Single<Authorization> createAuthorization(String customerId, String authorizationId,
-      String payKey, AuthorizationRepository authorizationRepository) {
-    return authorizationRepository.updateAuthorization(customerId, authorizationId, payKey,
+  public Single<Authorization> createAuthorization(String customerId, String paymentMethodId,
+      String payKey, AuthorizationRepository authorizationRepository, String paymentMethodType) {
+    return authorizationRepository.createAuthorization(customerId, paymentMethodId,
+        paymentMethodType, payKey,
         Authorization.Status.PENDING_SYNC);
   }
 }

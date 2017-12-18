@@ -9,9 +9,8 @@ import cm.aptoide.pt.dataprovider.interfaces.TokenInvalidator;
 import cm.aptoide.pt.dataprovider.ws.BodyInterceptor;
 import cm.aptoide.pt.dataprovider.ws.v7.BaseBody;
 import cm.aptoide.pt.dataprovider.ws.v7.V7;
-import cm.aptoide.pt.dataprovider.ws.v7.billing.GetAuthorizationRequest;
+import cm.aptoide.pt.dataprovider.ws.v7.billing.CreateAuthorizationRequest;
 import cm.aptoide.pt.dataprovider.ws.v7.billing.GetAuthorizationsRequest;
-import cm.aptoide.pt.dataprovider.ws.v7.billing.UpdateAuthorizationRequest;
 import cm.aptoide.pt.networking.AuthenticationPersistence;
 import java.util.List;
 import okhttp3.OkHttpClient;
@@ -46,53 +45,10 @@ public class AuthorizationServiceV7 implements AuthorizationService {
     this.authenticationPersistence = authenticationPersistence;
   }
 
-  @Override public Single<Authorization> getAuthorization(String transactionId, String customerId) {
-    return authenticationPersistence.getAuthentication()
-        .flatMapObservable(authentication -> GetAuthorizationRequest.of(
-            billingIdManager.resolveTransactionId(transactionId), sharedPreferences, httpClient,
-            converterFactory, bodyInterceptorV7, tokenInvalidator, authentication.getAccessToken(),
-            customerId)
-            .observe())
-        .toSingle()
-        .flatMap(response -> {
-
-          if (response.raw()
-              .networkResponse() != null
-              && response.raw()
-              .networkResponse()
-              .code() == 304) {
-            return Single.error(
-                new IllegalStateException("Stale authorization for transaction " + transactionId));
-          }
-
-          if (response.isSuccessful()) {
-
-            if (response.body() != null && response.body()
-                .isOk()) {
-              return Single.just(authorizationMapper.map(response.body()
-                  .getData(), transactionId));
-            }
-            return Single.error(new IllegalStateException(V7.getErrorMessage(response.body())));
-          }
-
-          if (response.code() == 404) {
-            return Single.just(
-                authorizationFactory.create(billingIdManager.generateAuthorizationId(), customerId,
-                    null, Authorization.Status.NEW, null, null, null, transactionId,
-                    null));
-          }
-
-          return Single.just(
-              authorizationFactory.create(billingIdManager.generateAuthorizationId(), customerId,
-                  null, Authorization.Status.FAILED, null, null, null, transactionId,
-                  null));
-        });
-  }
-
   @Override
-  public Single<Authorization> updateAuthorization(String customerId, String transactionId,
+  public Single<Authorization> createAuthorization(String customerId, String transactionId,
       String metadata) {
-    return UpdateAuthorizationRequest.of(billingIdManager.resolveTransactionId(transactionId),
+    return CreateAuthorizationRequest.of(billingIdManager.resolveTransactionId(transactionId),
         metadata, sharedPreferences, httpClient, converterFactory, bodyInterceptorV7,
         tokenInvalidator)
         .observe(true)

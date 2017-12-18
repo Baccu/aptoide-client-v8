@@ -37,15 +37,14 @@ import cm.aptoide.pt.dataprovider.ws.BodyInterceptor;
 import cm.aptoide.pt.dataprovider.ws.v7.analyticsbody.DownloadInstallAnalyticsBaseBody;
 import cm.aptoide.pt.dataprovider.ws.v7.billing.CreateTransactionRequest;
 import cm.aptoide.pt.dataprovider.ws.v7.billing.DeletePurchaseRequest;
-import cm.aptoide.pt.dataprovider.ws.v7.billing.GetAuthorizationRequest;
 import cm.aptoide.pt.dataprovider.ws.v7.billing.GetAuthorizationsRequest;
 import cm.aptoide.pt.dataprovider.ws.v7.billing.GetMerchantRequest;
 import cm.aptoide.pt.dataprovider.ws.v7.billing.GetProductsRequest;
 import cm.aptoide.pt.dataprovider.ws.v7.billing.GetPurchaseRequest;
 import cm.aptoide.pt.dataprovider.ws.v7.billing.GetPurchasesRequest;
-import cm.aptoide.pt.dataprovider.ws.v7.billing.GetServicesRequest;
+import cm.aptoide.pt.dataprovider.ws.v7.billing.GetPaymentMethodsRequest;
 import cm.aptoide.pt.dataprovider.ws.v7.billing.GetTransactionRequest;
-import cm.aptoide.pt.dataprovider.ws.v7.billing.UpdateAuthorizationRequest;
+import cm.aptoide.pt.dataprovider.ws.v7.billing.CreateAuthorizationRequest;
 import cm.aptoide.pt.dataprovider.ws.v7.listapps.ListAppVersionsRequest;
 import cm.aptoide.pt.dataprovider.ws.v7.listapps.ListAppsUpdatesRequest;
 import cm.aptoide.pt.dataprovider.ws.v7.post.CardPreviewRequest;
@@ -470,7 +469,7 @@ public abstract class V7<U, B> extends WebService<V7.Interfaces, U> {
         @Body GetProductsRequest.RequestBody requestBody,
         @Header(WebService.BYPASS_HEADER_KEY) boolean bypassCache);
 
-    @POST("inapp/bank/services/get") Observable<GetServicesRequest.ResponseBody> getBillingServices(
+    @POST("inapp/bank/services/get") Observable<GetPaymentMethodsRequest.ResponseBody> getBillingServices(
         @Body BaseBody body, @Header(WebService.BYPASS_HEADER_KEY) boolean bypassCache);
 
     @POST("inapp/purchases/get")
@@ -502,14 +501,9 @@ public abstract class V7<U, B> extends WebService<V7.Interfaces, U> {
         @Header(WebService.BYPASS_HEADER_KEY) boolean bypassCache);
 
     @POST("inapp/bank/authorization/set")
-    Observable<UpdateAuthorizationRequest.ResponseBody> updateBillingAuthorization(
-        @Body UpdateAuthorizationRequest.RequestBody body,
+    Observable<CreateAuthorizationRequest.ResponseBody> updateBillingAuthorization(
+        @Body CreateAuthorizationRequest.RequestBody body,
         @Header(WebService.BYPASS_HEADER_KEY) boolean bypassCache);
-
-    @GET("inapp/bank/authorization/getMeta")
-    Observable<Response<GetAuthorizationRequest.ResponseBody>> getBillingAuthorization(
-        @Query("transaction_id") long transactionId, @Header("Authorization") String authorization,
-        @Query("user_id") String customerId);
 
     @POST("user/timeline/card/del") Observable<BaseV7Response> deletePost(
         @Body PostDeleteRequest.Body body,

@@ -13,10 +13,10 @@ import okhttp3.OkHttpClient;
 import retrofit2.Converter;
 import rx.Observable;
 
-public class UpdateAuthorizationRequest
-    extends V7<UpdateAuthorizationRequest.ResponseBody, UpdateAuthorizationRequest.RequestBody> {
+public class CreateAuthorizationRequest
+    extends V7<CreateAuthorizationRequest.ResponseBody, CreateAuthorizationRequest.RequestBody> {
 
-  private UpdateAuthorizationRequest(RequestBody body, String baseHost, OkHttpClient httpClient,
+  private CreateAuthorizationRequest(RequestBody body, String baseHost, OkHttpClient httpClient,
       Converter.Factory converterFactory, BodyInterceptor bodyInterceptor,
       TokenInvalidator tokenInvalidator) {
     super(body, baseHost, httpClient, converterFactory, bodyInterceptor, tokenInvalidator);
@@ -30,7 +30,7 @@ public class UpdateAuthorizationRequest
         + "/api/7/";
   }
 
-  public static UpdateAuthorizationRequest of(long transactionId, String metadata,
+  public static CreateAuthorizationRequest of(long transactionId, String metadata,
       SharedPreferences sharedPreferences, OkHttpClient httpClient,
       Converter.Factory converterFactory, BodyInterceptor<BaseBody> bodyInterceptorV7,
       TokenInvalidator tokenInvalidator) {
@@ -39,7 +39,7 @@ public class UpdateAuthorizationRequest
     final RequestBody.Data data = new RequestBody.Data();
     data.setPayKey(metadata);
     requestBody.setServiceData(data);
-    return new UpdateAuthorizationRequest(requestBody, getHost(sharedPreferences), httpClient,
+    return new CreateAuthorizationRequest(requestBody, getHost(sharedPreferences), httpClient,
         converterFactory, bodyInterceptorV7, tokenInvalidator);
   }
 
@@ -84,13 +84,13 @@ public class UpdateAuthorizationRequest
 
   public static class ResponseBody extends BaseV7Response {
 
-    private GetAuthorizationRequest.ResponseBody.Authorization data;
+    private GetAuthorizationsRequest.ResponseBody.Data.Authorization data;
 
-    public GetAuthorizationRequest.ResponseBody.Authorization getData() {
+    public GetAuthorizationsRequest.ResponseBody.Data.Authorization getData() {
       return data;
     }
 
-    public void setData(GetAuthorizationRequest.ResponseBody.Authorization data) {
+    public void setData(GetAuthorizationsRequest.ResponseBody.Data.Authorization data) {
       this.data = data;
     }
   }

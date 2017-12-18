@@ -16,8 +16,9 @@ public class AdyenPaymentService implements PaymentService<String> {
     this.adyen = adyen;
   }
 
-  @Override public Single<Transaction> processPayment(String customerId, String productId,
-      String paymentMethodId, String payload, TransactionRepository transactionRepository) {
+  @Override public Single<Transaction> createTransaction(String customerId, String productId,
+      String paymentMethodId, String payload, TransactionRepository transactionRepository,
+      String paymentMethodType) {
     return adyen.createToken()
         .flatMap(
             token -> transactionRepository.createTransaction(customerId, productId, paymentMethodId,
@@ -25,9 +26,10 @@ public class AdyenPaymentService implements PaymentService<String> {
   }
 
   @Override
-  public Single<Authorization> createAuthorization(String customerId, String authorizationId,
-      String metadata, AuthorizationRepository authorizationRepository) {
-    return authorizationRepository.updateAuthorization(customerId, authorizationId, metadata,
+  public Single<Authorization> createAuthorization(String customerId, String paymentMethodId,
+      String metadata, AuthorizationRepository authorizationRepository, String paymentMethodType) {
+    return authorizationRepository.createAuthorization(customerId, paymentMethodId,
+        paymentMethodType, metadata,
         Authorization.Status.PENDING_SYNC);
   }
 }

@@ -7,7 +7,7 @@ public interface BillingIdManager {
 
   String generateProductId(long productId);
 
-  String generateServiceId(long serviceId);
+  String generatePaymentMehtodId(long serviceId);
 
   String generatePurchaseId(long purchaseId);
 
@@ -19,7 +19,7 @@ public interface BillingIdManager {
 
   long resolveTransactionId(String transactionId);
 
-  String generateServiceId();
+  String generatePaymentMehtodId();
 
   String generateTransactionId();
 

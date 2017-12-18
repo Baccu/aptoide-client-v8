@@ -12,9 +12,9 @@ public class PayPalAuthorization extends MetadataAuthorization {
   private final Price price;
   private final String description;
 
-  public PayPalAuthorization(String id, String customerId, Status status, String transactionId,
+  public PayPalAuthorization(String id, String customerId, Status status, String paymentMethodId,
       String metadata, Price price, String description) {
-    super(id, customerId, status, transactionId, metadata);
+    super(id, customerId, status, paymentMethodId, metadata);
     this.price = price;
     this.description = description;
   }

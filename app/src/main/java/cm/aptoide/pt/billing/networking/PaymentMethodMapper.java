@@ -6,12 +6,13 @@
 package cm.aptoide.pt.billing.networking;
 
 import cm.aptoide.pt.billing.BillingIdManager;
+import cm.aptoide.pt.billing.authorization.Authorization;
 import cm.aptoide.pt.billing.payment.AdyenPaymentService;
 import cm.aptoide.pt.billing.payment.PayPalPaymentService;
-import cm.aptoide.pt.billing.payment.PaymentMethod;
 import cm.aptoide.pt.crashreports.CrashLogger;
-import cm.aptoide.pt.dataprovider.ws.v7.billing.GetServicesRequest;
+import cm.aptoide.pt.dataprovider.ws.v7.billing.GetPaymentMethodsRequest;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class PaymentMethodMapper {
@@ -31,12 +32,25 @@ public class PaymentMethodMapper {
     this.minimumAPILevelPayPal = minimumAPILevelPayPal;
   }
 
-  public List<PaymentMethod> map(List<GetServicesRequest.ResponseBody.Service> responseList) {
+  public List<cm.aptoide.pt.billing.payment.PaymentMethod> map(
+      List<GetPaymentMethodsRequest.ResponseBody.PaymentMethod> responseList,
+      List<Authorization> authorizations) {
 
-    final List<PaymentMethod> paymentMethods = new ArrayList<>(responseList.size());
-    for (GetServicesRequest.ResponseBody.Service service : responseList) {
+    final List<cm.aptoide.pt.billing.payment.PaymentMethod> paymentMethods = new ArrayList<>(responseList.size());
+    final List<Authorization> paymentMethodAuthorizations = new ArrayList<>();
+    for (GetPaymentMethodsRequest.ResponseBody.PaymentMethod paymentMethod : responseList) {
+
+      paymentMethodAuthorizations.clear();
+
+      for (Authorization authorization : authorizations) {
+        if (authorization.getPaymentMethodId()
+            .equals(paymentMethod.getId())) {
+          paymentMethodAuthorizations.add(authorization);
+        }
+      }
+
       try {
-        paymentMethods.add(map(service));
+        paymentMethods.add(map(paymentMethod, paymentMethodAuthorizations));
       } catch (IllegalArgumentException exception) {
         crashLogger.log(exception);
       }
@@ -44,21 +58,23 @@ public class PaymentMethodMapper {
     return paymentMethods;
   }
 
-  private PaymentMethod map(GetServicesRequest.ResponseBody.Service response) {
+  private cm.aptoide.pt.billing.payment.PaymentMethod map(
+      GetPaymentMethodsRequest.ResponseBody.PaymentMethod response,
+      List<Authorization> authorizations) {
     switch (response.getName()) {
       case PayPalPaymentService.TYPE:
         if (currentAPILevel >= minimumAPILevelPayPal) {
-          return new PaymentMethod(billingIdManager.generateServiceId(response.getId()),
+          return new cm.aptoide.pt.billing.payment.PaymentMethod(billingIdManager.generatePaymentMehtodId(response.getId()),
               response.getName(), response.getLabel(), response.getDescription(),
-              response.getIcon(), true);
+              response.getIcon(), true, authorizations, null);
         }
         throw new IllegalArgumentException(
             "PayPal not supported in Android API lower than " + minimumAPILevelPayPal);
       case AdyenPaymentService.TYPE:
         if (currentAPILevel >= minimumAPILevelAdyen) {
-          return new PaymentMethod(billingIdManager.generateServiceId(response.getId()),
+          return new cm.aptoide.pt.billing.payment.PaymentMethod(billingIdManager.generatePaymentMehtodId(response.getId()),
               response.getName(), response.getLabel(), response.getDescription(),
-              response.getIcon(), false);
+              response.getIcon(), false, authorizations, null);
         }
         throw new IllegalArgumentException(
             "Adyen not supported in Android API lower than " + minimumAPILevelAdyen);

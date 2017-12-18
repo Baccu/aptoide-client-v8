@@ -73,12 +73,11 @@ public class PaymentMethodsPresenter implements Presenter {
         .observeOn(viewScheduler)
         .compose(view.bindUntilEvent(View.LifecycleEvent.DESTROY))
         .subscribe(payment -> {
-
-          if (!payment.getCustomer().isAuthenticated()) {
-            navigator.navigateToCustomerAuthenticationView(merchantPackageName, sku, payload);
-          } else {
-            if (payment.getAuthorizations()
-                .isEmpty()) {
+          if (payment.getCustomer()
+              .isAuthenticated()) {
+            if (payment.isAuthorized()) {
+              navigator.navigateToPaymentView(merchantPackageName, sku, payload);
+            } else {
               if (payment.getPaymentMethods()
                   .isEmpty()) {
                 view.showNoPaymentMethodsAvailableMessage();
@@ -86,9 +85,9 @@ public class PaymentMethodsPresenter implements Presenter {
                 view.showAvailablePaymentMethods(payment.getPaymentMethods());
               }
               view.hideLoading();
-            } else {
-              navigator.navigateToPaymentView(merchantPackageName, sku, payload);
             }
+          } else {
+            navigator.navigateToCustomerAuthenticationView(merchantPackageName, sku, payload);
           }
         }, throwable -> {
           throw new OnErrorNotImplementedException(throwable);

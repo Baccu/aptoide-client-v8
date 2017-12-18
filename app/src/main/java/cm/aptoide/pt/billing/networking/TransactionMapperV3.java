@@ -21,7 +21,7 @@ public class TransactionMapperV3 {
   public Transaction map(String customerId, String transactionId,
       TransactionResponse transactionResponse, String productId) {
 
-    final String serviceId = billingIdManager.generateServiceId(1);
+    final String serviceId = billingIdManager.generatePaymentMehtodId(1);
     if (transactionResponse.hasErrors()) {
       return getErrorTransaction(transactionResponse.getErrors(), customerId, transactionId,
           serviceId, productId);

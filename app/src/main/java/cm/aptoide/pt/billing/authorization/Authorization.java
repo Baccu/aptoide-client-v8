@@ -10,13 +10,13 @@ public class Authorization {
   private final String id;
   private final String customerId;
   private final Status status;
-  private final String transactionId;
+  private final String paymentMethodId;
 
-  public Authorization(String id, String customerId, Status status, String transactionId) {
+  public Authorization(String id, String customerId, Status status, String paymentMethodId) {
     this.id = id;
     this.customerId = customerId;
     this.status = status;
-    this.transactionId = transactionId;
+    this.paymentMethodId = paymentMethodId;
   }
 
   public String getId() {
@@ -55,8 +55,8 @@ public class Authorization {
     return status;
   }
 
-  public String getTransactionId() {
-    return transactionId;
+  public String getPaymentMethodId() {
+    return paymentMethodId;
   }
 
   public enum Status {

@@ -64,7 +64,7 @@ public class TransactionServiceV3 implements TransactionService {
             }
             return Single.just(transactionFactory.create(billingIdManager.generateTransactionId(
                 billingIdManager.resolveProductId(productId)), customerId, productId,
-                Transaction.Status.COMPLETED, billingIdManager.generateServiceId(1)));
+                Transaction.Status.COMPLETED, billingIdManager.generatePaymentMehtodId(1)));
           }
 
           return Single.just(transactionFactory.create(

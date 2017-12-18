@@ -98,8 +98,7 @@ import cm.aptoide.pt.spotandshare.group.GroupNameProvider;
 import cm.aptoide.pt.store.StoreCredentialsProviderImpl;
 import cm.aptoide.pt.store.StoreUtilsProxy;
 import cm.aptoide.pt.sync.SyncScheduler;
-import cm.aptoide.pt.sync.alarm.SyncStorage;
-import cm.aptoide.pt.sync.rx.RxSyncScheduler;
+import cm.aptoide.pt.sync.SyncStorage;
 import cm.aptoide.pt.utils.AptoideUtils;
 import cm.aptoide.pt.utils.FileUtils;
 import cm.aptoide.pt.utils.SecurityUtils;
@@ -179,7 +178,7 @@ public abstract class AptoideApplication extends Application {
   @Inject AccountManager androidAccountManager;
   @Inject @Named("default") SharedPreferences defaultSharedPreferences;
   @Inject @Named("secureShared") SharedPreferences secureSharedPreferences;
-  @Inject SyncScheduler alarmSyncScheduler;
+  @Inject SyncScheduler syncScheduler;
   @Inject @Named("pool-v7") BodyInterceptor<BaseBody> bodyInterceptorPoolV7;
   @Inject @Named("web-v7") BodyInterceptor<BaseBody> bodyInterceptorWebV7;
   @Inject @Named("defaulInterceptorV3") BodyInterceptor<cm.aptoide.pt.dataprovider.ws.v3.BaseBody>
@@ -571,9 +570,7 @@ public abstract class AptoideApplication extends Application {
       billingPool =
           new BillingPool(getDefaultSharedPreferences(), getBodyInterceptorV3(), getDefaultClient(),
               getAccountManager(), getDatabase(), getResources(), getPackageRepository(),
-              getTokenInvalidator(),
-              new RxSyncScheduler(new HashMap<>(), CrashReport.getInstance()),
-              getInAppBillingSerializer(),
+              getTokenInvalidator(), getInAppBillingSerializer(),
               getBodyInterceptorPoolV7(), getAccountSettingsBodyInterceptorPoolV7(),
               new HashMap<>(), WebService.getDefaultConverter(), CrashReport.getInstance(),
               getAdyen(), getPurchaseFactory(), Build.VERSION_CODES.JELLY_BEAN,
@@ -980,8 +977,8 @@ public abstract class AptoideApplication extends Application {
         .toCompletable();
   }
 
-  public SyncScheduler getAlarmSyncScheduler() {
-    return alarmSyncScheduler;
+  public SyncScheduler getSyncScheduler() {
+    return syncScheduler;
   }
 
   public NotificationAnalytics getNotificationAnalytics() {

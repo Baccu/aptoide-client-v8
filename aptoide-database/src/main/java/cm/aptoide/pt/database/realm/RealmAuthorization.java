@@ -18,7 +18,7 @@ public class RealmAuthorization extends RealmObject {
   @Required private String status;
   @Required private String type;
   @Required private String metadata;
-  @Required private String transactionId;
+  @Required private String paymentMethodId;
 
   private String description;
   private double amount;
@@ -28,11 +28,11 @@ public class RealmAuthorization extends RealmObject {
   public RealmAuthorization() {
   }
 
-  public RealmAuthorization(String id, String customerId, String status, String transactionId,
+  public RealmAuthorization(String id, String customerId, String status, String paymentMethodId,
       String metadata, String description, double amount, String currency, String currencySymbol,
       String type) {
     this.id = id;
-    this.transactionId = transactionId;
+    this.paymentMethodId = paymentMethodId;
     this.metadata = metadata;
     this.status = status;
     this.customerId = customerId;
@@ -59,8 +59,8 @@ public class RealmAuthorization extends RealmObject {
     return status;
   }
 
-  public String getTransactionId() {
-    return transactionId;
+  public String getPaymentMethodId() {
+    return paymentMethodId;
   }
 
   public double getAmount() {

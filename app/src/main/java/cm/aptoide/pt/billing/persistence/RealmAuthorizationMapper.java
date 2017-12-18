@@ -56,7 +56,7 @@ public class RealmAuthorizationMapper {
 
     return new RealmAuthorization(authorization.getId(), authorization.getCustomerId(),
         authorization.getStatus()
-            .name(), authorization.getTransactionId(), metadata, description, amount, currency,
+            .name(), authorization.getPaymentMethodId(), metadata, description, amount, currency,
         currencySymbol, type);
   }
 
@@ -66,6 +66,6 @@ public class RealmAuthorizationMapper {
         Authorization.Status.valueOf(realmAuthorization.getStatus()), realmAuthorization.getMetadata(),
         new Price(realmAuthorization.getAmount(), realmAuthorization.getCurrency(),
             realmAuthorization.getCurrencySymbol()), realmAuthorization.getDescription(),
-        realmAuthorization.getTransactionId(), null);
+        realmAuthorization.getPaymentMethodId(), null);
   }
 }

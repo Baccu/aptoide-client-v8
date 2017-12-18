@@ -356,5 +356,14 @@ public class RealmToRealmDatabaseMigration implements RealmMigration {
 
       oldVersion++;
     }
+
+    if (oldVersion == 8091) {
+      schema.create("RealmAuthorization")
+          .removeField("transactionId")
+          .addField("paymentMethodId", String.class, FieldAttribute.REQUIRED);
+
+      oldVersion++;
+    }
+
   }
 }

@@ -9,7 +9,7 @@ import cm.aptoide.pt.billing.BillingIdManager;
 import cm.aptoide.pt.billing.Price;
 import cm.aptoide.pt.billing.authorization.Authorization;
 import cm.aptoide.pt.billing.authorization.AuthorizationFactory;
-import cm.aptoide.pt.dataprovider.ws.v7.billing.GetAuthorizationRequest;
+import cm.aptoide.pt.dataprovider.ws.v7.billing.GetAuthorizationsRequest;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +24,7 @@ public class AuthorizationMapperV7 {
     this.billingIdManager = billingIdManager;
   }
 
-  public Authorization map(GetAuthorizationRequest.ResponseBody.Authorization response,
+  public Authorization map(GetAuthorizationsRequest.ResponseBody.Data.Authorization response,
       String transactionId) {
 
     Price price = null;
@@ -35,7 +35,7 @@ public class AuthorizationMapperV7 {
           .getCurrencySymbol());
     }
 
-    final GetAuthorizationRequest.ResponseBody.Authorization.Metadata metadata = response.getData();
+    final GetAuthorizationsRequest.ResponseBody.Data.Authorization.Metadata metadata = response.getData();
     String description = null;
     String session = null;
     if (metadata != null) {
@@ -50,10 +50,10 @@ public class AuthorizationMapperV7 {
   }
 
   public List<Authorization> map(
-      List<GetAuthorizationRequest.ResponseBody.Authorization> authorizations) {
+      List<GetAuthorizationsRequest.ResponseBody.Data.Authorization> authorizations) {
     final List<Authorization> result = new ArrayList<>();
 
-    for (GetAuthorizationRequest.ResponseBody.Authorization authorization : authorizations) {
+    for (GetAuthorizationsRequest.ResponseBody.Data.Authorization authorization : authorizations) {
       result.add(map(authorization, null));
     }
     return result;

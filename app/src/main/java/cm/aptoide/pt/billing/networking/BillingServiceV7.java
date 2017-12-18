@@ -9,23 +9,27 @@ import android.content.SharedPreferences;
 import cm.aptoide.pt.billing.BillingIdManager;
 import cm.aptoide.pt.billing.BillingService;
 import cm.aptoide.pt.billing.Merchant;
+import cm.aptoide.pt.billing.authorization.AuthorizationService;
+import cm.aptoide.pt.billing.customer.Customer;
 import cm.aptoide.pt.billing.exception.MerchantNotFoundException;
 import cm.aptoide.pt.billing.exception.ProductNotFoundException;
 import cm.aptoide.pt.billing.exception.PurchaseNotFoundException;
+import cm.aptoide.pt.billing.payment.Payment;
 import cm.aptoide.pt.billing.payment.PaymentMethod;
 import cm.aptoide.pt.billing.product.Product;
 import cm.aptoide.pt.billing.purchase.Purchase;
 import cm.aptoide.pt.billing.purchase.PurchaseFactory;
+import cm.aptoide.pt.billing.transaction.TransactionService;
 import cm.aptoide.pt.dataprovider.interfaces.TokenInvalidator;
 import cm.aptoide.pt.dataprovider.ws.BodyInterceptor;
 import cm.aptoide.pt.dataprovider.ws.v7.BaseBody;
 import cm.aptoide.pt.dataprovider.ws.v7.V7;
 import cm.aptoide.pt.dataprovider.ws.v7.billing.DeletePurchaseRequest;
 import cm.aptoide.pt.dataprovider.ws.v7.billing.GetMerchantRequest;
+import cm.aptoide.pt.dataprovider.ws.v7.billing.GetPaymentMethodsRequest;
 import cm.aptoide.pt.dataprovider.ws.v7.billing.GetProductsRequest;
 import cm.aptoide.pt.dataprovider.ws.v7.billing.GetPurchaseRequest;
 import cm.aptoide.pt.dataprovider.ws.v7.billing.GetPurchasesRequest;
-import cm.aptoide.pt.dataprovider.ws.v7.billing.GetServicesRequest;
 import java.util.Collections;
 import java.util.List;
 import okhttp3.OkHttpClient;
@@ -45,13 +49,15 @@ public class BillingServiceV7 implements BillingService {
   private final BodyInterceptor<BaseBody> bodyInterceptorV7;
   private final BillingIdManager billingIdManager;
   private final PurchaseFactory purchaseFactory;
+  private final TransactionService transactionServiceV7;
+  private final AuthorizationService authorizationServiceV7;
 
   public BillingServiceV7(BodyInterceptor<BaseBody> bodyInterceptorV7, OkHttpClient httpClient,
       Converter.Factory converterFactory, TokenInvalidator tokenInvalidator,
       SharedPreferences sharedPreferences, PurchaseMapperV7 purchaseMapper,
       ProductMapperV7 productMapperV7, PaymentMethodMapper serviceMapper,
-      BillingIdManager billingIdManager,
-      PurchaseFactory purchaseFactory) {
+      BillingIdManager billingIdManager, PurchaseFactory purchaseFactory,
+      TransactionService transactionServiceV7, AuthorizationService authorizationServiceV7) {
     this.httpClient = httpClient;
     this.converterFactory = converterFactory;
     this.tokenInvalidator = tokenInvalidator;
@@ -62,20 +68,23 @@ public class BillingServiceV7 implements BillingService {
     this.bodyInterceptorV7 = bodyInterceptorV7;
     this.billingIdManager = billingIdManager;
     this.purchaseFactory = purchaseFactory;
+    this.transactionServiceV7 = transactionServiceV7;
+    this.authorizationServiceV7 = authorizationServiceV7;
   }
 
-  @Override public Single<List<PaymentMethod>> getPaymentMethods() {
-    return GetServicesRequest.of(sharedPreferences, httpClient, converterFactory, bodyInterceptorV7,
-        tokenInvalidator)
-        .observe(false)
-        .toSingle()
-        .flatMap(response -> {
-          if (response != null && response.isOk()) {
-            return Single.just(serviceMapper.map(response.getList()));
-          } else {
-            return Single.error(new IllegalStateException(V7.getErrorMessage(response)));
-          }
-        });
+  @Override
+  public Single<Payment> getPayment(String merchantPackageName, int merchantVersionCode, String sku,
+      Customer customer, String selectedPaymentMethodId) {
+    return Single.zip(getMerchant(merchantPackageName, merchantVersionCode),
+        getPaymentMethods(customer.getId()), getProduct(sku, merchantPackageName),
+        (merchant, paymentMethods, product) -> {
+          return Single.zip(transactionServiceV7.getTransaction(customer.getId(), product.getId()),
+              getPurchase(product.getId()), (transaction, purchase) -> {
+                return new Payment(merchant, customer, product, transaction, purchase,
+                    paymentMethods, selectedPaymentMethodId);
+              });
+        })
+        .flatMap(single -> single);
   }
 
   @Override public Single<Merchant> getMerchant(String merchantName, int versionCode) {
@@ -125,23 +134,6 @@ public class BillingServiceV7 implements BillingService {
         });
   }
 
-  @Override public Single<Purchase> getPurchase(String productId) {
-    return GetPurchaseRequest.of(billingIdManager.resolveProductId(productId), bodyInterceptorV7,
-        httpClient, converterFactory, tokenInvalidator, sharedPreferences)
-        .observe(true)
-        .toSingle()
-        .flatMap(response -> {
-
-          if (response.isSuccessful()) {
-            return Single.just(purchaseMapper.map(response.body()
-                .getData()));
-          }
-
-          return Single.just(
-              purchaseFactory.create(productId, null, null, Purchase.Status.FAILED, null));
-        });
-  }
-
   @Override public Single<List<Product>> getProducts(String merchantName, List<String> skus) {
     return GetProductsRequest.of(merchantName, skus, bodyInterceptorV7, httpClient,
         converterFactory, tokenInvalidator, sharedPreferences)
@@ -158,7 +150,24 @@ public class BillingServiceV7 implements BillingService {
         });
   }
 
-  @Override public Single<Product> getProduct(String sku, String merchantName) {
+  private Single<Purchase> getPurchase(String productId) {
+    return GetPurchaseRequest.of(billingIdManager.resolveProductId(productId), bodyInterceptorV7,
+        httpClient, converterFactory, tokenInvalidator, sharedPreferences)
+        .observe(true)
+        .toSingle()
+        .flatMap(response -> {
+
+          if (response.isSuccessful()) {
+            return Single.just(purchaseMapper.map(response.body()
+                .getData()));
+          }
+
+          return Single.just(
+              purchaseFactory.create(productId, null, null, Purchase.Status.FAILED, null));
+        });
+  }
+
+  private Single<Product> getProduct(String sku, String merchantName) {
     return GetProductsRequest.of(merchantName, sku, bodyInterceptorV7, httpClient, converterFactory,
         tokenInvalidator, sharedPreferences)
         .observe(false)
@@ -171,5 +180,20 @@ public class BillingServiceV7 implements BillingService {
             return Single.error(new ProductNotFoundException("No product found for sku: " + sku));
           }
         });
+  }
+
+  private Single<List<PaymentMethod>> getPaymentMethods(String customerId) {
+    return authorizationServiceV7.getAuthorizations(customerId)
+        .flatMap(authorizations -> GetPaymentMethodsRequest.of(sharedPreferences, httpClient,
+            converterFactory, bodyInterceptorV7, tokenInvalidator)
+            .observe(false)
+            .toSingle()
+            .flatMap(response -> {
+              if (response != null && response.isOk()) {
+                return Single.just(serviceMapper.map(response.getList(), authorizations));
+              } else {
+                return Single.error(new IllegalStateException(V7.getErrorMessage(response)));
+              }
+            }));
   }
 }

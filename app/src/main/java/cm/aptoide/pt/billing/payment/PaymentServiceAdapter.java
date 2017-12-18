@@ -22,15 +22,17 @@ public class PaymentServiceAdapter {
     this.authorizationRepository = authorizationRepository;
   }
 
-  public Single<Transaction> createTransaction(String type, String serviceId, String sku,
+  public Single<Transaction> createTransaction(String paymentMethodType, String serviceId,
       String payload, String customerId, String productId) {
-    return adapters.get(type)
-        .processPayment(customerId, productId, serviceId, payload, transactionRepository);
+    return adapters.get(paymentMethodType)
+        .createTransaction(customerId, productId, serviceId, payload, transactionRepository,
+            paymentMethodType);
   }
 
-  public <T> Single<Authorization> authorize(String type, T metadata, String customerId,
-      String transactionId) {
-    return adapters.get(type)
-        .createAuthorization(customerId, transactionId, metadata, authorizationRepository);
+  public <T> Single<Authorization> createAuthorization(String customerId, String paymentMethodId,
+      String paymentMethodType, T metadata) {
+    return adapters.get(paymentMethodType)
+        .createAuthorization(customerId, paymentMethodId, metadata, authorizationRepository,
+            paymentMethodType);
   }
 }

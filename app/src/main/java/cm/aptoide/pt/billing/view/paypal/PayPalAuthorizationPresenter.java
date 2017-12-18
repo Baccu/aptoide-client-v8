@@ -53,8 +53,7 @@ public class PayPalAuthorizationPresenter implements Presenter {
         .first(event -> event.equals(View.LifecycleEvent.RESUME))
         .doOnNext(__ -> view.showLoading())
         .flatMap(created -> billing.getPayment(sku))
-        .first(payment -> payment.isPendingAuthorization())
-        .map(payment -> payment.getAuthorization())
+        .map(payment -> payment.getSelectedAuthorization())
         .cast(PayPalAuthorization.class)
         .delay(100, TimeUnit.MILLISECONDS)
         .observeOn(viewScheduler)
@@ -119,7 +118,7 @@ public class PayPalAuthorizationPresenter implements Presenter {
           switch (result.getStatus()) {
             case BillingNavigator.PayPalResult.SUCCESS:
               return billing.authorize(sku, result.getPaymentConfirmationId(),
-                  payment.getPaymentMethod()
+                  payment.getSelectedPaymentMethod()
                       .getId());
             case BillingNavigator.PayPalResult.CANCELLED:
               analytics.sendAuthorizationCancelEvent(serviceName);

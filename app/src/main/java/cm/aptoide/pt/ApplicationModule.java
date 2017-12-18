@@ -112,9 +112,8 @@ import cm.aptoide.pt.root.RootValueSaver;
 import cm.aptoide.pt.store.StoreCredentialsProviderImpl;
 import cm.aptoide.pt.store.StoreUtilsProxy;
 import cm.aptoide.pt.sync.SyncScheduler;
-import cm.aptoide.pt.sync.alarm.AlarmSyncScheduler;
-import cm.aptoide.pt.sync.alarm.AlarmSyncService;
-import cm.aptoide.pt.sync.alarm.SyncStorage;
+import cm.aptoide.pt.sync.AlarmSyncService;
+import cm.aptoide.pt.sync.SyncStorage;
 import cm.aptoide.pt.utils.AptoideUtils;
 import cm.aptoide.pt.utils.FileUtils;
 import cm.aptoide.pt.utils.q.QManager;
@@ -559,7 +558,7 @@ import static com.google.android.gms.auth.api.Auth.GOOGLE_SIGN_IN_API;
   }
 
   @Singleton @Provides SyncScheduler provideSyncScheduler(SyncStorage syncStorage) {
-    return new AlarmSyncScheduler(application, AlarmSyncService.class,
+    return new SyncScheduler(application, AlarmSyncService.class,
         (AlarmManager) application.getSystemService(ALARM_SERVICE), syncStorage);
   }
 

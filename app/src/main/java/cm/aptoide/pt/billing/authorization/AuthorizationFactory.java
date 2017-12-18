@@ -9,32 +9,20 @@ public class AuthorizationFactory {
 
   public Authorization create(String id, String customerId, String type,
       Authorization.Status status, String metadata, Price price, String description,
-      String transactionId, String session) {
+      String paymentMethodId, String session) {
 
     if (type == null) {
-      return new Authorization(id, customerId, status, transactionId);
+      return new Authorization(id, customerId, status, paymentMethodId);
     }
 
     switch (type) {
       case PAYPAL_SDK:
-        return new PayPalAuthorization(id, customerId, status, transactionId, metadata, price,
+        return new PayPalAuthorization(id, customerId, status, paymentMethodId, metadata, price,
             description);
       case ADYEN_SDK:
-        return new AdyenAuthorization(id, customerId, status, transactionId, session, metadata);
+        return new AdyenAuthorization(id, customerId, status, paymentMethodId, session, metadata);
       default:
-        return new Authorization(id, customerId, status, transactionId);
+        return new Authorization(id, customerId, status, paymentMethodId);
     }
-  }
-
-  public String getType(Authorization authorization) {
-    if (authorization instanceof AdyenAuthorization) {
-      return ADYEN_SDK;
-    }
-
-    if (authorization instanceof PayPalAuthorization) {
-      return PAYPAL_SDK;
-    }
-
-    return null;
   }
 }

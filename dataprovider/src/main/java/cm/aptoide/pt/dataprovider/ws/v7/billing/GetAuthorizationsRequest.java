@@ -65,14 +65,147 @@ public class GetAuthorizationsRequest
 
     public static class Data {
 
-      private List<GetAuthorizationRequest.ResponseBody.Authorization> list;
+      private List<Authorization> list;
 
-      public List<GetAuthorizationRequest.ResponseBody.Authorization> getList() {
+      public List<Authorization> getList() {
         return list;
       }
 
-      public void setList(List<GetAuthorizationRequest.ResponseBody.Authorization> list) {
+      public void setList(List<Authorization> list) {
         this.list = list;
+      }
+
+      public static class Authorization {
+
+        private long id;
+        private String type;
+        private long serviceId;
+        private Price price;
+        private User user;
+        private String status;
+        private Metadata data;
+
+        public long getId() {
+          return id;
+        }
+
+        public void setId(long id) {
+          this.id = id;
+        }
+
+        public String getType() {
+          return type;
+        }
+
+        public void setType(String type) {
+          this.type = type;
+        }
+
+        public long getServiceId() {
+          return serviceId;
+        }
+
+        public void setServiceId(long serviceId) {
+          this.serviceId = serviceId;
+        }
+
+        public Price getPrice() {
+          return price;
+        }
+
+        public void setPrice(Price price) {
+          this.price = price;
+        }
+
+        public User getUser() {
+          return user;
+        }
+
+        public void setUser(User user) {
+          this.user = user;
+        }
+
+        public String getStatus() {
+          return status;
+        }
+
+        public void setStatus(String status) {
+          this.status = status;
+        }
+
+        public Metadata getData() {
+          return data;
+        }
+
+        public void setData(Metadata data) {
+          this.data = data;
+        }
+
+        public static class User {
+
+          private long id;
+
+          public long getId() {
+            return id;
+          }
+
+          public void setId(long id) {
+            this.id = id;
+          }
+        }
+
+        public static class Metadata {
+
+          private String description;
+          private String session;
+
+          public String getDescription() {
+            return description;
+          }
+
+          public void setDescription(String description) {
+            this.description = description;
+          }
+
+          public String getSession() {
+            return session;
+          }
+
+          public void setSession(String session) {
+            this.session = session;
+          }
+        }
+
+        public static class Price {
+
+          private double amount;
+          private String currency;
+          private String currencySymbol;
+
+          public double getAmount() {
+            return amount;
+          }
+
+          public void setAmount(double amount) {
+            this.amount = amount;
+          }
+
+          public String getCurrency() {
+            return currency;
+          }
+
+          public void setCurrency(String currency) {
+            this.currency = currency;
+          }
+
+          public String getCurrencySymbol() {
+            return currencySymbol;
+          }
+
+          public void setCurrencySymbol(String currencySymbol) {
+            this.currencySymbol = currencySymbol;
+          }
+        }
       }
     }
   }

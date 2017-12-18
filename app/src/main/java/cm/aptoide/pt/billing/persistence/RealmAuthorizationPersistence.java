@@ -61,16 +61,6 @@ public class RealmAuthorizationPersistence implements AuthorizationPersistence {
         .subscribeOn(scheduler);
   }
 
-  @Override
-  public Observable<Authorization> getAuthorization(String customerId, String transactionId) {
-    return authorizationRelay.startWith(getAuthorizations())
-        .flatMap(authorizations -> Observable.from(authorizations)
-            .filter(authorization -> authorization.getCustomerId()
-                .equals(customerId) && authorization.getTransactionId()
-                .equals(transactionId)))
-        .subscribeOn(scheduler);
-  }
-
   @Override public Observable<List<Authorization>> getAuthorizations(String customerId) {
     return authorizationRelay.startWith(getAuthorizations())
         .flatMap(authorizations -> Observable.from(authorizations)
@@ -90,35 +80,20 @@ public class RealmAuthorizationPersistence implements AuthorizationPersistence {
   }
 
   @Override
-  public Single<Authorization> updateAuthorization(String customerId, String authorizationId,
-      Authorization.Status status, String metadata) {
-    return Observable.from(getAuthorizations())
-        .filter(authorization -> authorization.getCustomerId()
-            .equals(customerId) && authorization.getId()
-            .equals(authorizationId))
-        .first()
-        .toSingle()
-        .flatMap(authorization -> {
+  public Single<Authorization> createAuthorization(String customerId, String paymentMethodId,
+      Authorization.Status status, String metadata, String paymentMethodType) {
+    return Single.defer(() -> {
           final Authorization updatedAuthorization =
-              authorizationFactory.create(authorization.getId(), authorization.getCustomerId(),
-                  authorizationFactory.getType(authorization), status, metadata, null,
-                  null, authorization.getTransactionId(), null);
+              authorizationFactory.create(idGenerator.generate(), customerId, paymentMethodType,
+                  status, metadata, null, null, paymentMethodId, null);
           return saveAuthorization(updatedAuthorization).andThen(Single.just(updatedAuthorization));
         });
-  }
-
-  @Override
-  public Single<Authorization> createAuthorization(String customerId, String transactionId,
-      Authorization.Status status) {
-    final Authorization authorization =
-        authorizationFactory.create(idGenerator.generate(), customerId, null, status, null, null, null, transactionId, null);
-    return saveAuthorization(authorization).andThen(Single.just(authorization));
   }
 
   @Override public Completable removeAuthorizations(String customerId, String transactionId) {
     return Observable.from(getAuthorizations())
         .filter(authorization -> authorization.getCustomerId()
-            .equals(customerId) && authorization.getTransactionId()
+            .equals(customerId) && authorization.getPaymentMethodId()
             .equals(transactionId))
         .map(authorization -> authorization.getId())
         .toList()

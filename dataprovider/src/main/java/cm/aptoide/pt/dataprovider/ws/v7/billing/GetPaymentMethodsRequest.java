@@ -13,9 +13,9 @@ import okhttp3.OkHttpClient;
 import retrofit2.Converter;
 import rx.Observable;
 
-public class GetServicesRequest extends V7<GetServicesRequest.ResponseBody, BaseBody> {
+public class GetPaymentMethodsRequest extends V7<GetPaymentMethodsRequest.ResponseBody, BaseBody> {
 
-  private GetServicesRequest(BaseBody body, String baseHost, OkHttpClient httpClient,
+  private GetPaymentMethodsRequest(BaseBody body, String baseHost, OkHttpClient httpClient,
       Converter.Factory converterFactory, BodyInterceptor bodyInterceptor,
       TokenInvalidator tokenInvalidator) {
     super(body, baseHost, httpClient, converterFactory, bodyInterceptor, tokenInvalidator);
@@ -29,32 +29,32 @@ public class GetServicesRequest extends V7<GetServicesRequest.ResponseBody, Base
         + "/api/7/";
   }
 
-  public static GetServicesRequest of(SharedPreferences sharedPreferences, OkHttpClient httpClient,
+  public static GetPaymentMethodsRequest of(SharedPreferences sharedPreferences, OkHttpClient httpClient,
       Converter.Factory converterFactory, BodyInterceptor bodyInterceptor,
       TokenInvalidator tokenInvalidator) {
-    return new GetServicesRequest(new BaseBody(), getHost(sharedPreferences), httpClient,
+    return new GetPaymentMethodsRequest(new BaseBody(), getHost(sharedPreferences), httpClient,
         converterFactory, bodyInterceptor, tokenInvalidator);
   }
 
   @Override
-  protected Observable<GetServicesRequest.ResponseBody> loadDataFromNetwork(Interfaces interfaces,
+  protected Observable<GetPaymentMethodsRequest.ResponseBody> loadDataFromNetwork(Interfaces interfaces,
       boolean bypassCache) {
     return interfaces.getBillingServices(body, bypassCache);
   }
 
   public static class ResponseBody extends BaseV7Response {
 
-    private List<Service> list;
+    private List<PaymentMethod> list;
 
-    public List<Service> getList() {
+    public List<PaymentMethod> getList() {
       return list;
     }
 
-    public void setList(List<Service> list) {
+    public void setList(List<PaymentMethod> list) {
       this.list = list;
     }
 
-    public static class Service {
+    public static class PaymentMethod {
       private long id;
       private String name;
       private String label;

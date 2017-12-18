@@ -1,4 +1,4 @@
-package cm.aptoide.pt.sync.alarm;
+package cm.aptoide.pt.sync;
 
 import cm.aptoide.pt.sync.Sync;
 import rx.Completable;

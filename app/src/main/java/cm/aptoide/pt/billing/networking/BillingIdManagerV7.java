@@ -23,7 +23,7 @@ public class BillingIdManagerV7 implements BillingIdManager {
     return String.valueOf(productId);
   }
 
-  @Override public String generateServiceId(long serviceId) {
+  @Override public String generatePaymentMehtodId(long serviceId) {
     return String.valueOf(serviceId);
   }
 
@@ -47,7 +47,7 @@ public class BillingIdManagerV7 implements BillingIdManager {
     return Long.valueOf(transactionId);
   }
 
-  @Override public String generateServiceId() {
+  @Override public String generatePaymentMehtodId() {
     return idGenerator.generate();
   }
 

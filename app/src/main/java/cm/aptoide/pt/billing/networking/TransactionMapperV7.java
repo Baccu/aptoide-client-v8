@@ -26,7 +26,7 @@ public class TransactionMapperV7 {
         String.valueOf(response.getUser()
             .getId()), billingIdManager.generateProductId(response.getProduct()
             .getId()), Transaction.Status.valueOf(response.getStatus()),
-        billingIdManager.generateServiceId(response.getService()
+        billingIdManager.generatePaymentMehtodId(response.getService()
             .getId()));
   }
 }

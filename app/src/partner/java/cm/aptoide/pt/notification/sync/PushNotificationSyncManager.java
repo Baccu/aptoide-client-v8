@@ -2,7 +2,6 @@ package cm.aptoide.pt.notification.sync;
 
 import cm.aptoide.pt.notification.NotificationSyncScheduler;
 import cm.aptoide.pt.notification.sync.NotificationSyncFactory;
-import cm.aptoide.pt.sync.SyncScheduler;
 
 public class PushNotificationSyncManager implements NotificationSyncScheduler {
 

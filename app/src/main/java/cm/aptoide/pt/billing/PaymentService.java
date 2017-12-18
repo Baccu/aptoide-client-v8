@@ -8,9 +8,10 @@ import rx.Single;
 
 public interface PaymentService<T> {
 
-  public Single<Transaction> processPayment(String customerId, String productId,
-      String paymentMethodId, String payload, TransactionRepository transactionRepository);
+  public Single<Transaction> createTransaction(String customerId, String productId,
+      String paymentMethodId, String payload, TransactionRepository transactionRepository,
+      String paymentMethodType);
 
-  public Single<Authorization> createAuthorization(String customerId, String authorizationId,
-      T metadata, AuthorizationRepository authorizationRepository);
+  public Single<Authorization> createAuthorization(String customerId, String paymentMethodId,
+      T metadata, AuthorizationRepository authorizationRepository, String paymentMethodType);
 }
