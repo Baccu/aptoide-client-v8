@@ -79,11 +79,11 @@ public class PaymentMethodsPresenter implements Presenter {
           } else {
             if (payment.getAuthorizations()
                 .isEmpty()) {
-              if (payment.getPaymentServices()
+              if (payment.getPaymentMethods()
                   .isEmpty()) {
                 view.showNoPaymentMethodsAvailableMessage();
               } else {
-                view.showAvailablePaymentMethods(payment.getPaymentServices());
+                view.showAvailablePaymentMethods(payment.getPaymentMethods());
               }
               view.hideLoading();
             } else {

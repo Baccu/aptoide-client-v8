@@ -14,20 +14,20 @@ public class Payment {
   private final Merchant merchant;
   private final Customer customer;
   private final Product product;
-  private final List<PaymentService> paymentServices;
+  private final List<PaymentMethod> paymentMethods;
 
   private final Transaction transaction;
   private final Purchase purchase;
   private final List<Authorization> authorizations;
 
   public Payment(Merchant merchant, Customer customer, Product product, Transaction transaction,
-      Purchase purchase, List<PaymentService> paymentServices, List<Authorization> authorizations) {
+      Purchase purchase, List<PaymentMethod> paymentMethods, List<Authorization> authorizations) {
     this.merchant = merchant;
     this.customer = customer;
     this.product = product;
     this.transaction = transaction;
     this.purchase = purchase;
-    this.paymentServices = paymentServices;
+    this.paymentMethods = paymentMethods;
     this.authorizations = authorizations;
   }
 
@@ -43,8 +43,8 @@ public class Payment {
     return product;
   }
 
-  public PaymentService getPaymentService(String serviceId) {
-    for (PaymentService service: paymentServices) {
+  public PaymentMethod getPaymentMethod(String serviceId) {
+    for (PaymentMethod service: paymentMethods) {
       if (service.getId()
           .equals(serviceId)) {
         return service;
@@ -53,9 +53,9 @@ public class Payment {
     throw new IllegalArgumentException("No service for id: " + serviceId);
   }
 
-  public PaymentService getPaymentService() {
+  public PaymentMethod getPaymentMethod() {
     if (transaction != null) {
-      return getPaymentService(transaction.getServiceId());
+      return getPaymentMethod(transaction.getServiceId());
     }
     throw new IllegalStateException(
         "No transaction for payment yet. Can not return payment service.");
@@ -65,8 +65,8 @@ public class Payment {
     return purchase;
   }
 
-  public List<PaymentService> getPaymentServices() {
-    return paymentServices;
+  public List<PaymentMethod> getPaymentMethods() {
+    return paymentMethods;
   }
 
   public boolean isNew() {

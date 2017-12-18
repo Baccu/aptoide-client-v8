@@ -12,7 +12,7 @@ import cm.aptoide.pt.billing.Merchant;
 import cm.aptoide.pt.billing.exception.MerchantNotFoundException;
 import cm.aptoide.pt.billing.exception.ProductNotFoundException;
 import cm.aptoide.pt.billing.exception.PurchaseNotFoundException;
-import cm.aptoide.pt.billing.payment.PaymentService;
+import cm.aptoide.pt.billing.payment.PaymentMethod;
 import cm.aptoide.pt.billing.product.Product;
 import cm.aptoide.pt.billing.purchase.Purchase;
 import cm.aptoide.pt.billing.purchase.PurchaseFactory;
@@ -41,7 +41,7 @@ public class BillingServiceV7 implements BillingService {
   private final SharedPreferences sharedPreferences;
   private final PurchaseMapperV7 purchaseMapper;
   private final ProductMapperV7 productMapperV7;
-  private final PaymentServiceMapper serviceMapper;
+  private final PaymentMethodMapper serviceMapper;
   private final BodyInterceptor<BaseBody> bodyInterceptorV7;
   private final BillingIdManager billingIdManager;
   private final PurchaseFactory purchaseFactory;
@@ -49,7 +49,7 @@ public class BillingServiceV7 implements BillingService {
   public BillingServiceV7(BodyInterceptor<BaseBody> bodyInterceptorV7, OkHttpClient httpClient,
       Converter.Factory converterFactory, TokenInvalidator tokenInvalidator,
       SharedPreferences sharedPreferences, PurchaseMapperV7 purchaseMapper,
-      ProductMapperV7 productMapperV7, PaymentServiceMapper serviceMapper,
+      ProductMapperV7 productMapperV7, PaymentMethodMapper serviceMapper,
       BillingIdManager billingIdManager,
       PurchaseFactory purchaseFactory) {
     this.httpClient = httpClient;
@@ -64,7 +64,7 @@ public class BillingServiceV7 implements BillingService {
     this.purchaseFactory = purchaseFactory;
   }
 
-  @Override public Single<List<PaymentService>> getPaymentServices() {
+  @Override public Single<List<PaymentMethod>> getPaymentMethods() {
     return GetServicesRequest.of(sharedPreferences, httpClient, converterFactory, bodyInterceptorV7,
         tokenInvalidator)
         .observe(false)

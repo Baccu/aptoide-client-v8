@@ -19,7 +19,7 @@ import cm.aptoide.pt.billing.networking.BillingIdManagerV3;
 import cm.aptoide.pt.billing.networking.BillingIdManagerV7;
 import cm.aptoide.pt.billing.networking.BillingServiceV3;
 import cm.aptoide.pt.billing.networking.BillingServiceV7;
-import cm.aptoide.pt.billing.networking.PaymentServiceMapper;
+import cm.aptoide.pt.billing.networking.PaymentMethodMapper;
 import cm.aptoide.pt.billing.networking.ProductMapperV3;
 import cm.aptoide.pt.billing.networking.ProductMapperV7;
 import cm.aptoide.pt.billing.networking.PurchaseMapperV3;
@@ -29,7 +29,9 @@ import cm.aptoide.pt.billing.networking.TransactionMapperV7;
 import cm.aptoide.pt.billing.networking.TransactionServiceV3;
 import cm.aptoide.pt.billing.networking.TransactionServiceV7;
 import cm.aptoide.pt.billing.payment.Adyen;
-import cm.aptoide.pt.billing.payment.PaymentService;
+import cm.aptoide.pt.billing.payment.AdyenPaymentService;
+import cm.aptoide.pt.billing.payment.PayPalPaymentService;
+import cm.aptoide.pt.billing.payment.PaymentMethod;
 import cm.aptoide.pt.billing.persistence.InMemoryTransactionPersistence;
 import cm.aptoide.pt.billing.persistence.RealmAuthorizationMapper;
 import cm.aptoide.pt.billing.persistence.RealmAuthorizationPersistence;
@@ -107,6 +109,8 @@ public class BillingPool {
   private TransactionMapperV3 transactionMapperV3;
   private LocalIdGenerator localIdGenerator;
   private MerchantVersionProvider merchantVersionCodeProvider;
+  private PayPalPaymentService payPalPaymentService;
+  private AdyenPaymentService adyenPaymentService;
 
   public BillingPool(SharedPreferences sharedPreferences,
       BodyInterceptor<BaseBody> bodyInterceptorV3, OkHttpClient httpClient,
@@ -159,14 +163,44 @@ public class BillingPool {
 
   private Billing create(String merchantPackageName) {
     if (merchantPackageName.equals(BuildConfig.APPLICATION_ID)) {
-      return new Billing(merchantPackageName, getBillingServiceV3(), getPaidAppTransactionRepository(),
-          getPaidAppAuthorizationRepository(), getCustomerPersistence(),
-          getPurchaseTokenDecoder(), getBillingSyncSchedulerV3(), getMerchantVersionProvider());
+      return new Billing.Builder().setMerchantPackageName(merchantPackageName)
+          .setMerchantVersionProvider(getMerchantVersionProvider())
+          .setCustomerPersistence(getCustomerPersistence())
+          .setPurchaseTokenDecoder(getPurchaseTokenDecoder())
+          .setBillingService(getBillingServiceV3())
+          .setSyncScheduler(getBillingSyncSchedulerV3())
+          .setTransactionRepository(getPaidAppTransactionRepository())
+          .setAuthorizationRepository(getPaidAppAuthorizationRepository())
+          .registerPaymentService(AdyenPaymentService.TYPE, getAdyenPaymentService())
+          .registerPaymentService(PayPalPaymentService.TYPE, getPayPalPaymentService())
+          .build();
     } else {
-      return new Billing(merchantPackageName, getBillingServiceV7(), getInAppTransactionRepository(),
-          getInAppAuthorizationRepository(), getCustomerPersistence(),
-          getPurchaseTokenDecoder(), getBillingSyncSchedulerV7(), getMerchantVersionProvider());
+      return new Billing.Builder().setMerchantPackageName(merchantPackageName)
+          .setMerchantVersionProvider(getMerchantVersionProvider())
+          .setCustomerPersistence(getCustomerPersistence())
+          .setPurchaseTokenDecoder(getPurchaseTokenDecoder())
+          .setBillingService(getBillingServiceV7())
+          .setSyncScheduler(getBillingSyncSchedulerV7())
+          .setTransactionRepository(getInAppTransactionRepository())
+          .setAuthorizationRepository(getInAppAuthorizationRepository())
+          .registerPaymentService(AdyenPaymentService.TYPE, getAdyenPaymentService())
+          .registerPaymentService(PayPalPaymentService.TYPE, getPayPalPaymentService())
+          .build();
     }
+  }
+
+  private PayPalPaymentService getPayPalPaymentService() {
+    if (payPalPaymentService == null) {
+      payPalPaymentService = new PayPalPaymentService();
+    }
+    return payPalPaymentService;
+  }
+
+  private AdyenPaymentService getAdyenPaymentService() {
+    if (adyenPaymentService == null) {
+      adyenPaymentService = new AdyenPaymentService(adyen);
+    }
+    return adyenPaymentService;
   }
 
   private MerchantVersionProvider getMerchantVersionProvider() {
@@ -199,8 +233,8 @@ public class BillingPool {
           new BillingServiceV3(bodyInterceptorV3, httpClient, converterFactory, tokenInvalidator,
               sharedPreferences, new PurchaseMapperV3(purchaseFactory),
               new ProductMapperV3(getBillingIdManagerV3()), resources,
-              new PaymentService(getBillingIdManagerV3().generateServiceId(1),
-                  PaymentServiceMapper.PAYPAL, "PayPal", null, "", true), getBillingIdManagerV3(),
+              new PaymentMethod(getBillingIdManagerV3().generateServiceId(1),
+                  PayPalPaymentService.TYPE, "PayPal", null, "", true), getBillingIdManagerV3(),
               Build.VERSION.SDK_INT, minimumAPILevelPayPal, marketName);
     }
     return billingServiceV3;
@@ -213,8 +247,8 @@ public class BillingPool {
               tokenInvalidator, sharedPreferences,
               new PurchaseMapperV7(externalBillingSerializer, getBillingIdManagerV7(),
                   purchaseFactory), new ProductMapperV7(getBillingIdManagerV7()),
-              new PaymentServiceMapper(crashLogger, getBillingIdManagerV7(), adyen,
-                  Build.VERSION.SDK_INT, minimumAPILevelAdyen, minimumAPILevelPayPal),
+              new PaymentMethodMapper(crashLogger, getBillingIdManagerV7(), Build.VERSION.SDK_INT,
+                  minimumAPILevelAdyen, minimumAPILevelPayPal),
               getBillingIdManagerV7(), purchaseFactory);
     }
     return billingServiceV7;

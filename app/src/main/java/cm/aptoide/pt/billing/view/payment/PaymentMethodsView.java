@@ -1,6 +1,6 @@
 package cm.aptoide.pt.billing.view.payment;
 
-import cm.aptoide.pt.billing.payment.PaymentService;
+import cm.aptoide.pt.billing.payment.PaymentMethod;
 import cm.aptoide.pt.presenter.View;
 import java.util.List;
 import rx.Observable;
@@ -9,9 +9,9 @@ public interface PaymentMethodsView extends View {
 
   void showNoPaymentMethodsAvailableMessage();
 
-  void showAvailablePaymentMethods(List<PaymentService> paymentServices);
+  void showAvailablePaymentMethods(List<PaymentMethod> paymentMethods);
 
-  Observable<PaymentService> getSelectedPaymentMethodEvent();
+  Observable<PaymentMethod> getSelectedPaymentMethodEvent();
 
   Observable<Void> getCancelEvent();
 

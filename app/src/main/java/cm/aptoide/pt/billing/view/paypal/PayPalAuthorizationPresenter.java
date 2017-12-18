@@ -112,10 +112,15 @@ public class PayPalAuthorizationPresenter implements Presenter {
         .filter(event -> event.equals(View.LifecycleEvent.CREATE))
         .flatMap(created -> billingNavigator.payPalResults(PAY_APP_REQUEST_CODE))
         .doOnNext(result -> view.showLoading())
-        .flatMapCompletable(result -> {
+        .flatMapCompletable(result -> billing.getPayment(sku)
+            .first()
+            .toSingle()
+            .flatMapCompletable(payment -> {
           switch (result.getStatus()) {
             case BillingNavigator.PayPalResult.SUCCESS:
-              return billing.authorize(sku, result.getPaymentConfirmationId());
+              return billing.authorize(sku, result.getPaymentConfirmationId(),
+                  payment.getPaymentMethod()
+                      .getId());
             case BillingNavigator.PayPalResult.CANCELLED:
               analytics.sendAuthorizationCancelEvent(serviceName);
               popView();
@@ -126,7 +131,7 @@ public class PayPalAuthorizationPresenter implements Presenter {
             default:
               return Completable.complete();
           }
-        })
+            }))
         .compose(view.bindUntilEvent(View.LifecycleEvent.DESTROY))
         .subscribe(__ -> {
         }, throwable -> showError(throwable));

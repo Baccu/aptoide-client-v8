@@ -5,22 +5,23 @@
 
 package cm.aptoide.pt.billing.payment;
 
-public class PaymentService {
+public class PaymentMethod {
 
   private final String id;
   private final String type;
   private final String name;
   private final String description;
   private final String icon;
-  private final boolean defaultService;
+  private final boolean defaultMethod;
 
-  public PaymentService(String id, String type, String name, String description, String icon,  boolean defaultService) {
+  public PaymentMethod(String id, String type, String name, String description, String icon,
+      boolean defaultMethod) {
     this.id = id;
     this.type = type;
     this.name = name;
     this.description = description;
     this.icon = icon;
-    this.defaultService = defaultService;
+    this.defaultMethod = defaultMethod;
   }
 
   public String getId() {
@@ -43,7 +44,7 @@ public class PaymentService {
     return icon;
   }
 
-  public boolean isDefaultService() {
-    return defaultService;
+  public boolean isDefaultMethod() {
+    return defaultMethod;
   }
 }

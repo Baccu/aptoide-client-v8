@@ -21,7 +21,7 @@ import cm.aptoide.pt.analytics.ScreenTagHistory;
 import cm.aptoide.pt.billing.Billing;
 import cm.aptoide.pt.billing.BillingAnalytics;
 import cm.aptoide.pt.billing.BillingIdManager;
-import cm.aptoide.pt.billing.payment.PaymentService;
+import cm.aptoide.pt.billing.payment.PaymentMethod;
 import cm.aptoide.pt.billing.product.Product;
 import cm.aptoide.pt.billing.view.BillingActivity;
 import cm.aptoide.pt.billing.view.BillingNavigator;
@@ -201,12 +201,12 @@ public class PaymentFragment extends PermissionServiceFragment implements Paymen
     progressView.setVisibility(View.VISIBLE);
   }
 
-  @Override public void showPayments(List<PaymentService> services) {
+  @Override public void showPayments(List<PaymentMethod> services) {
     serviceRadioGroup.removeAllViews();
 
     RadioButton radioButton;
     CharSequence radioText;
-    for (PaymentService service : services) {
+    for (PaymentMethod service : services) {
 
       radioButton = (RadioButton) getActivity().getLayoutInflater()
           .inflate(R.layout.item_payment_authorization, serviceRadioGroup, false);
@@ -227,7 +227,7 @@ public class PaymentFragment extends PermissionServiceFragment implements Paymen
 
       radioButton.setText(radioText);
 
-      radioButton.setChecked(service.isDefaultService());
+      radioButton.setChecked(service.isDefaultMethod());
 
       serviceRadioGroup.addView(radioButton);
     }

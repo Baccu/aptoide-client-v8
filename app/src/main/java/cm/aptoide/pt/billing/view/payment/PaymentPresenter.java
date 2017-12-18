@@ -8,7 +8,7 @@ package cm.aptoide.pt.billing.view.payment;
 import cm.aptoide.pt.billing.Billing;
 import cm.aptoide.pt.billing.BillingAnalytics;
 import cm.aptoide.pt.billing.exception.ServiceNotAuthorizedException;
-import cm.aptoide.pt.billing.payment.PaymentService;
+import cm.aptoide.pt.billing.payment.PaymentMethod;
 import cm.aptoide.pt.billing.view.BillingNavigator;
 import cm.aptoide.pt.presenter.Presenter;
 import cm.aptoide.pt.presenter.View;
@@ -84,7 +84,7 @@ public class PaymentPresenter implements Presenter {
             view.showMerchant(payment.getMerchant()
                 .getName());
             view.showProduct(payment.getProduct());
-            view.showPayments(payment.getPaymentServices());
+            view.showPayments(payment.getPaymentMethods());
           }
         }, throwable -> navigator.popViewWithResult(throwable));
   }
@@ -118,7 +118,7 @@ public class PaymentPresenter implements Presenter {
                   view.hideBuyLoading();
                 })
                     .onErrorResumeNext(throwable -> navigateToAuthorizationView(
-                        payment.getPaymentService(serviceId), throwable))))
+                        payment.getPaymentMethod(serviceId), throwable))))
             .observeOn(viewScheduler)
             .doOnError(throwable -> {
               view.hideBuyLoading();
@@ -130,7 +130,7 @@ public class PaymentPresenter implements Presenter {
         }, throwable -> navigator.popViewWithResult(throwable));
   }
 
-  private Completable navigateToAuthorizationView(PaymentService selectedService,
+  private Completable navigateToAuthorizationView(PaymentMethod selectedService,
       Throwable throwable) {
     if (throwable instanceof ServiceNotAuthorizedException) {
       navigator.navigateToAuthorizationView(merchantName, selectedService, sku);

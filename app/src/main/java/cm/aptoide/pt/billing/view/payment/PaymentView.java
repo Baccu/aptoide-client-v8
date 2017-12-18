@@ -5,7 +5,7 @@
 
 package cm.aptoide.pt.billing.view.payment;
 
-import cm.aptoide.pt.billing.payment.PaymentService;
+import cm.aptoide.pt.billing.payment.PaymentMethod;
 import cm.aptoide.pt.billing.product.Product;
 import cm.aptoide.pt.presenter.View;
 import java.util.List;
@@ -21,7 +21,7 @@ public interface PaymentView extends View {
 
   void showBuyLoading();
 
-  void showPayments(List<PaymentService> paymentList);
+  void showPayments(List<PaymentMethod> paymentList);
 
   void showProduct(Product product);
 

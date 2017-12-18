@@ -10,7 +10,7 @@ import android.content.res.Resources;
 import cm.aptoide.pt.billing.BillingIdManager;
 import cm.aptoide.pt.billing.BillingService;
 import cm.aptoide.pt.billing.Merchant;
-import cm.aptoide.pt.billing.payment.PaymentService;
+import cm.aptoide.pt.billing.payment.PaymentMethod;
 import cm.aptoide.pt.billing.product.Product;
 import cm.aptoide.pt.billing.purchase.Purchase;
 import cm.aptoide.pt.dataprovider.interfaces.TokenInvalidator;
@@ -35,7 +35,7 @@ public class BillingServiceV3 implements BillingService {
   private final PurchaseMapperV3 purchaseMapper;
   private final ProductMapperV3 productMapper;
   private final Resources resources;
-  private final PaymentService paymentService;
+  private final PaymentMethod paymentMethod;
   private final BillingIdManager billingIdManager;
   private final int currentAPILevel;
   private final int serviceMinimumAPILevel;
@@ -44,7 +44,7 @@ public class BillingServiceV3 implements BillingService {
   public BillingServiceV3(BodyInterceptor<BaseBody> bodyInterceptorV3, OkHttpClient httpClient,
       Converter.Factory converterFactory, TokenInvalidator tokenInvalidator,
       SharedPreferences sharedPreferences, PurchaseMapperV3 purchaseMapper,
-      ProductMapperV3 productMapper, Resources resources, PaymentService paymentService,
+      ProductMapperV3 productMapper, Resources resources, PaymentMethod paymentMethod,
       BillingIdManager billingIdManager, int currentAPILevel, int serviceMinimumAPILevel,
       String marketName) {
     this.bodyInterceptorV3 = bodyInterceptorV3;
@@ -55,16 +55,16 @@ public class BillingServiceV3 implements BillingService {
     this.purchaseMapper = purchaseMapper;
     this.productMapper = productMapper;
     this.resources = resources;
-    this.paymentService = paymentService;
+    this.paymentMethod = paymentMethod;
     this.billingIdManager = billingIdManager;
     this.currentAPILevel = currentAPILevel;
     this.serviceMinimumAPILevel = serviceMinimumAPILevel;
     this.marketName = marketName;
   }
 
-  @Override public Single<List<PaymentService>> getPaymentServices() {
+  @Override public Single<List<PaymentMethod>> getPaymentMethods() {
     if (currentAPILevel >= serviceMinimumAPILevel) {
-      return Single.just(Collections.singletonList(paymentService));
+      return Single.just(Collections.singletonList(paymentMethod));
     }
     return Single.just(Collections.emptyList());
   }

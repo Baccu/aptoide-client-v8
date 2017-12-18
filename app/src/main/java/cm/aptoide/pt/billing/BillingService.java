@@ -1,6 +1,6 @@
 package cm.aptoide.pt.billing;
 
-import cm.aptoide.pt.billing.payment.PaymentService;
+import cm.aptoide.pt.billing.payment.PaymentMethod;
 import cm.aptoide.pt.billing.product.Product;
 import cm.aptoide.pt.billing.purchase.Purchase;
 import java.util.List;
@@ -9,7 +9,7 @@ import rx.Single;
 
 public interface BillingService {
 
-  Single<List<PaymentService>> getPaymentServices();
+  Single<List<PaymentMethod>> getPaymentMethods();
 
   Single<Merchant> getMerchant(String packageName, int versionCode);
 

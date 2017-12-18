@@ -27,11 +27,10 @@ public class AuthorizationRepository {
         .andThen(authorizationPersistence.getAuthorization(customerId, transactionId));
   }
 
-  public Completable updateAuthorization(String customerId, String authorizationId, String metadata,
+  public Single<Authorization> updateAuthorization(String customerId, String authorizationId, String metadata,
       Authorization.Status status) {
     return authorizationPersistence.updateAuthorization(customerId, authorizationId, status,
-        metadata)
-        .toCompletable();
+        metadata);
   }
 
   public Single<Authorization> createAuthorization(String customerId, String transactionId,

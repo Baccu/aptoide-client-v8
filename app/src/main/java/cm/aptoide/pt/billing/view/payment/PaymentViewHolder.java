@@ -5,7 +5,7 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.TextView;
 import cm.aptoide.pt.R;
-import cm.aptoide.pt.billing.payment.PaymentService;
+import cm.aptoide.pt.billing.payment.PaymentMethod;
 import cm.aptoide.pt.utils.AptoideUtils;
 import cm.aptoide.pt.view.spannable.SpannableFactory;
 import com.bumptech.glide.Glide;
@@ -16,11 +16,11 @@ import rx.subjects.PublishSubject;
 
 public class PaymentViewHolder extends RecyclerView.ViewHolder {
 
-  private final PublishSubject<PaymentService> paymentSubject;
+  private final PublishSubject<PaymentMethod> paymentSubject;
   private final TextView paymentText;
   private final SpannableFactory spannableFactory;
 
-  public PaymentViewHolder(View itemView, PublishSubject<PaymentService> paymentSubject,
+  public PaymentViewHolder(View itemView, PublishSubject<PaymentMethod> paymentSubject,
       SpannableFactory spannableFactory) {
     super(itemView);
     this.paymentSubject = paymentSubject;
@@ -28,7 +28,7 @@ public class PaymentViewHolder extends RecyclerView.ViewHolder {
     this.spannableFactory = spannableFactory;
   }
 
-  public void setPaymentMethod(PaymentService service) {
+  public void setPaymentMethod(PaymentMethod service) {
     itemView.setOnClickListener(view -> paymentSubject.onNext(service));
     Glide.with(itemView.getContext())
         .load(service.getIcon())

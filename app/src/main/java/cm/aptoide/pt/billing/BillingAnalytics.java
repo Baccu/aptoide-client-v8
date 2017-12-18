@@ -63,7 +63,7 @@ public class BillingAnalytics {
 
   public void sendAuthorizationSuccessEvent(Payment payment) {
     final Bundle bundle = new Bundle();
-    bundle.putString("payment_method", payment.getPaymentService()
+    bundle.putString("payment_method", payment.getPaymentMethod()
         .getType());
     analytics.sendEvent(getFacebookPaymentEvent("Payment_Authorization_Page", "Success", bundle));
   }

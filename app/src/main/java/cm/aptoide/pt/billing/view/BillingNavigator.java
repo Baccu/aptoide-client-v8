@@ -6,8 +6,9 @@ import android.os.Bundle;
 import android.support.annotation.ColorInt;
 import android.support.customtabs.CustomTabsIntent;
 import cm.aptoide.pt.BuildConfig;
-import cm.aptoide.pt.billing.networking.PaymentServiceMapper;
-import cm.aptoide.pt.billing.payment.PaymentService;
+import cm.aptoide.pt.billing.payment.AdyenPaymentService;
+import cm.aptoide.pt.billing.payment.PayPalPaymentService;
+import cm.aptoide.pt.billing.payment.PaymentMethod;
 import cm.aptoide.pt.billing.purchase.Purchase;
 import cm.aptoide.pt.billing.view.card.CreditCardAuthorizationFragment;
 import cm.aptoide.pt.billing.view.login.PaymentLoginFragment;
@@ -52,16 +53,16 @@ public class BillingNavigator {
         PaymentLoginFragment.create(getBillingBundle(merchantName, sku, payload)), true);
   }
 
-  public void navigateToAuthorizationView(String merchantName, PaymentService service,
+  public void navigateToAuthorizationView(String merchantName, PaymentMethod service,
       String sku) {
 
     final Bundle bundle = getBillingBundle(merchantName, sku, service.getType());
 
     switch (service.getType()) {
-      case PaymentServiceMapper.PAYPAL:
+      case PayPalPaymentService.TYPE:
         fragmentNavigator.navigateToWithoutBackSave(PaymentFragment.create(bundle), true);
         break;
-      case PaymentServiceMapper.ADYEN:
+      case AdyenPaymentService.TYPE:
         fragmentNavigator.navigateTo(CreditCardAuthorizationFragment.create(bundle), true);
         break;
       default:

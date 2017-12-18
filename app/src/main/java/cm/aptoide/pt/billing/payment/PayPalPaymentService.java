@@ -7,27 +7,19 @@ import cm.aptoide.pt.billing.transaction.Transaction;
 import cm.aptoide.pt.billing.transaction.TransactionRepository;
 import rx.Single;
 
-public class AdyenPaymentService implements PaymentService<String> {
+public class PayPalPaymentService implements PaymentService<String> {
 
-  public static final String TYPE = "ADYEN";
-  private final Adyen adyen;
-
-  public AdyenPaymentService(Adyen adyen) {
-    this.adyen = adyen;
-  }
+  public static final String TYPE = "PAYPAL";
 
   @Override public Single<Transaction> processPayment(String customerId, String productId,
       String paymentMethodId, String payload, TransactionRepository transactionRepository) {
-    return adyen.createToken()
-        .flatMap(
-            token -> transactionRepository.createTransaction(customerId, productId, paymentMethodId,
-                payload, token));
+    return transactionRepository.createTransaction(customerId, productId, paymentMethodId, payload);
   }
 
   @Override
   public Single<Authorization> createAuthorization(String customerId, String authorizationId,
-      String metadata, AuthorizationRepository authorizationRepository) {
-    return authorizationRepository.updateAuthorization(customerId, authorizationId, metadata,
+      String payKey, AuthorizationRepository authorizationRepository) {
+    return authorizationRepository.updateAuthorization(customerId, authorizationId, payKey,
         Authorization.Status.PENDING_SYNC);
   }
 }

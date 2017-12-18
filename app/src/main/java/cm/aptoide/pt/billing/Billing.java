@@ -10,16 +10,18 @@ import cm.aptoide.pt.billing.authorization.AuthorizationRepository;
 import cm.aptoide.pt.billing.customer.Customer;
 import cm.aptoide.pt.billing.exception.PaymentFailureException;
 import cm.aptoide.pt.billing.exception.ServiceNotAuthorizedException;
-import cm.aptoide.pt.billing.payment.AdyenPaymentService;
 import cm.aptoide.pt.billing.payment.Payment;
-import cm.aptoide.pt.billing.payment.PaymentService;
+import cm.aptoide.pt.billing.payment.PaymentMethod;
+import cm.aptoide.pt.billing.payment.PaymentServiceAdapter;
 import cm.aptoide.pt.billing.product.Product;
 import cm.aptoide.pt.billing.purchase.Purchase;
 import cm.aptoide.pt.billing.transaction.AuthorizedTransaction;
 import cm.aptoide.pt.billing.transaction.Transaction;
 import cm.aptoide.pt.billing.transaction.TransactionRepository;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import rx.Completable;
 import rx.Observable;
 import rx.Single;
@@ -34,11 +36,13 @@ public class Billing {
   private final String merchantPackageName;
   private final BillingSyncScheduler syncScheduler;
   private final MerchantVersionProvider versionProvider;
+  private final PaymentServiceAdapter serviceAdapter;
 
-  public Billing(String merchantPackageName, BillingService billingService,
+  private Billing(String merchantPackageName, BillingService billingService,
       TransactionRepository transactionRepository, AuthorizationRepository authorizationRepository,
       CustomerPersistence customerPersistence, PurchaseTokenDecoder tokenDecoder,
-      BillingSyncScheduler syncScheduler, MerchantVersionProvider versionProvider) {
+      BillingSyncScheduler syncScheduler, MerchantVersionProvider versionProvider,
+      PaymentServiceAdapter serviceAdapter) {
     this.transactionRepository = transactionRepository;
     this.billingService = billingService;
     this.authorizationRepository = authorizationRepository;
@@ -47,6 +51,7 @@ public class Billing {
     this.merchantPackageName = merchantPackageName;
     this.syncScheduler = syncScheduler;
     this.versionProvider = versionProvider;
+    this.serviceAdapter = serviceAdapter;
   }
 
   public Single<Merchant> getMerchant() {
@@ -55,7 +60,7 @@ public class Billing {
   }
 
   public Observable<Payment> getPayment(String sku) {
-    return getMerchant().flatMapObservable(merchant -> billingService.getPaymentServices()
+    return getMerchant().flatMapObservable(merchant -> billingService.getPaymentMethods()
         .flatMapObservable(services -> billingService.getProduct(sku, merchantPackageName)
             .flatMapObservable(product -> customerPersistence.getCustomer()
                 .switchMap(customer -> {
@@ -87,23 +92,14 @@ public class Billing {
   }
 
   public Completable processPayment(String serviceId, String sku, String payload) {
-    return getMerchant().flatMapCompletable(merchant -> billingService.getPaymentServices()
-        .flatMapCompletable(services -> billingService.getProduct(sku, merchantPackageName)
+    return getMerchant().flatMapCompletable(merchant -> billingService.getPaymentMethods()
+        .flatMapCompletable(methods -> billingService.getProduct(sku, merchantPackageName)
             .flatMapCompletable(product -> customerPersistence.getCustomer()
                 .first()
                 .toSingle()
-                .flatMapCompletable(
-                    customer -> getPaymentService(services, serviceId).flatMap(selectedService -> {
-
-                      if (selectedService instanceof AdyenPaymentService) {
-                        return ((AdyenPaymentService) selectedService).getToken()
-                            .flatMap(
-                                token -> transactionRepository.createTransaction(customer.getId(),
-                                    product.getId(), selectedService.getId(), payload, token));
-                      }
-                      return transactionRepository.createTransaction(customer.getId(),
-                          product.getId(), selectedService.getId(), payload);
-                    })
+                .flatMapCompletable(customer -> getPaymentMethod(methods, serviceId).flatMap(
+                    selectedService -> serviceAdapter.createTransaction(selectedService.getType(),
+                        serviceId, sku, payload, customer.getId(), product.getId()))
                         .flatMapCompletable(
                             transaction -> removeOldTransactions(transaction).andThen(
                                 Completable.defer(() -> {
@@ -121,25 +117,27 @@ public class Billing {
                                 })))))));
   }
 
-  private Single<PaymentService> getPaymentService(List<PaymentService> services,
-      String serviceId) {
-    return Observable.from(services)
+  private Single<PaymentMethod> getPaymentMethod(List<PaymentMethod> methods, String methodId) {
+    return Observable.from(methods)
         .first(service -> service.getId()
-            .equals(serviceId))
+            .equals(methodId))
         .toSingle();
   }
 
-  public Completable authorize(String sku, String metadata) {
-    return customerPersistence.getCustomer()
+  public Completable authorize(String sku, String metadata, String methodId) {
+    return Single.zip(customerPersistence.getCustomer()
         .first()
-        .toSingle()
-        .flatMapCompletable(customer -> billingService.getProduct(sku, merchantPackageName)
-            .flatMapCompletable(product -> getAuthorizedTransaction(customer, product).first()
-                .toSingle()
-                .flatMapCompletable(
-                    transaction -> authorizationRepository.updateAuthorization(customer.getId(),
-                        transaction.getAuthorization()
-                .getId(), metadata, Authorization.Status.PENDING_SYNC))));
+        .toSingle(), billingService.getProduct(sku, merchantPackageName), (customer, product) -> {
+      return Single.zip(getAuthorizedTransaction(customer, product).first()
+              .toSingle(), billingService.getPaymentMethods()
+              .flatMap(methods -> getPaymentMethod(methods, methodId)),
+          (transaction, paymentMethod) -> {
+            return serviceAdapter.authorize(paymentMethod.getType(), metadata, customer.getId(),
+                transaction.getId());
+          });
+    })
+        .flatMap(single -> single)
+        .toCompletable();
   }
 
   public void stopSync() {
@@ -173,5 +171,79 @@ public class Billing {
                     authorizationRepository.removeAuthorization(otherTransaction.getCustomerId(),
                         otherTransaction.getId())))
         .toCompletable();
+  }
+
+  public static class Builder {
+
+    private TransactionRepository transactionRepository;
+    private BillingService billingService;
+    private AuthorizationRepository authorizationRepository;
+    private CustomerPersistence customerPersistence;
+    private PurchaseTokenDecoder tokenDecoder;
+    private String merchantPackageName;
+    private BillingSyncScheduler syncScheduler;
+    private MerchantVersionProvider versionProvider;
+    private Map<String, PaymentService> services;
+
+    public Builder() {
+      this.services = new HashMap<>();
+    }
+
+    public Builder setTransactionRepository(TransactionRepository transactionRepository) {
+      this.transactionRepository = transactionRepository;
+      return this;
+    }
+
+    public Builder setBillingService(BillingService billingService) {
+      this.billingService = billingService;
+      return this;
+    }
+
+    public Builder setAuthorizationRepository(AuthorizationRepository authorizationRepository) {
+      this.authorizationRepository = authorizationRepository;
+      return this;
+    }
+
+    public Builder setCustomerPersistence(CustomerPersistence customerPersistence) {
+      this.customerPersistence = customerPersistence;
+      return this;
+    }
+
+    public Builder setPurchaseTokenDecoder(PurchaseTokenDecoder tokenDecoder) {
+      this.tokenDecoder = tokenDecoder;
+      return this;
+    }
+
+    public Builder setMerchantPackageName(String merchantPackageName) {
+      this.merchantPackageName = merchantPackageName;
+      return this;
+    }
+
+    public Builder setSyncScheduler(BillingSyncScheduler syncScheduler) {
+      this.syncScheduler = syncScheduler;
+      return this;
+    }
+
+    public Builder setMerchantVersionProvider(MerchantVersionProvider versionProvider) {
+      this.versionProvider = versionProvider;
+      return this;
+    }
+
+    public Builder registerPaymentService(String type, PaymentService service) {
+      services.put(type, service);
+      return this;
+    }
+
+    public Billing build() {
+
+      if (services.isEmpty()) {
+        throw new IllegalStateException("Register at least 1 payment service");
+      }
+
+      return new Billing(merchantPackageName, billingService, transactionRepository,
+          authorizationRepository, customerPersistence, tokenDecoder, syncScheduler,
+          versionProvider,
+          new PaymentServiceAdapter(services, transactionRepository, authorizationRepository));
+    }
   }
 }

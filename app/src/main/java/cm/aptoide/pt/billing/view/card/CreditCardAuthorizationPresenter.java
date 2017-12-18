@@ -155,14 +155,18 @@ public class CreditCardAuthorizationPresenter implements Presenter {
   private void handleAdyenPaymentResult() {
     view.getLifecycle()
         .filter(event -> event.equals(View.LifecycleEvent.CREATE))
-        .flatMapSingle(__ -> adyen.getPaymentResult())
-        .flatMapCompletable(result -> {
+        .flatMapCompletable(__ -> adyen.getPaymentResult()
+            .flatMapCompletable(result -> billing.getPayment(sku)
+                .first()
+                .toSingle()
+                .flatMapCompletable(payment -> {
           if (result.isProcessed()) {
             return billing.authorize(sku, result.getPayment()
-                .getPayload());
+                .getPayload(), payment.getPaymentMethod()
+                .getId());
           }
           return Completable.error(result.getError());
-        })
+                })))
         .observeOn(viewScheduler)
         .compose(view.bindUntilEvent(View.LifecycleEvent.DESTROY))
         .subscribe(__ -> {

@@ -16,7 +16,7 @@ import cm.aptoide.pt.AptoideApplication;
 import cm.aptoide.pt.R;
 import cm.aptoide.pt.analytics.ScreenTagHistory;
 import cm.aptoide.pt.billing.Billing;
-import cm.aptoide.pt.billing.payment.PaymentService;
+import cm.aptoide.pt.billing.payment.PaymentMethod;
 import cm.aptoide.pt.billing.view.BillingActivity;
 import cm.aptoide.pt.billing.view.BillingNavigator;
 import cm.aptoide.pt.navigator.ActivityResultNavigator;
@@ -114,7 +114,7 @@ public class PaymentMethodsFragment extends PermissionServiceFragment
         .getSimpleName());
   }
 
-  @Override public Observable<PaymentService> getSelectedPaymentMethodEvent() {
+  @Override public Observable<PaymentMethod> getSelectedPaymentMethodEvent() {
     return adapter.getSelectedPaymentMethod();
   }
 
@@ -127,7 +127,7 @@ public class PaymentMethodsFragment extends PermissionServiceFragment
     list.setVisibility(View.GONE);
   }
 
-  @Override public void showAvailablePaymentMethods(List<PaymentService> paymentMethods) {
+  @Override public void showAvailablePaymentMethods(List<PaymentMethod> paymentMethods) {
     list.setVisibility(View.VISIBLE);
     noPaymentsMessage.setVisibility(View.GONE);
     adapter.updatePaymentMethods(paymentMethods);
